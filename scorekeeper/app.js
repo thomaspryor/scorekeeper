@@ -2,22 +2,39 @@
 (function() {
   'use strict';
 
-  // Color palette (Atari-style)
+  // Color palette - reordered for maximum distinction between adjacent colors
   const COLORS = [
-    '#FF4444', '#FF9933', '#FFDD00', '#44DD44', '#99FF33', '#00DDDD',
-    '#4488FF', '#AA44FF', '#FF66CC', '#AAAAAA', '#FFFFFF', '#333333'
+    '#FF4136', // Red
+    '#2ECC40', // Green
+    '#0074D9', // Blue
+    '#FFDC00', // Yellow
+    '#B10DC9', // Purple
+    '#FF851B', // Orange
+    '#39CCCC', // Teal
+    '#F012BE', // Magenta
+    '#01FF70', // Lime
+    '#AAAAAA', // Gray
+    '#111111', // Black
+    '#FFFFFF', // White
   ];
 
   // State
   let state = {
     players: [],
-    soundEnabled: true,
-    sortMode: 'none' // 'none', 'asc', 'desc'
+    soundEnabled: true
   };
+
+  // Undo stack
+  let undoStack = [];
+  const MAX_UNDO = 50;
+
+  // Track running deltas per player (for showing "0 + 10 = 10")
+  let playerDeltas = {}; // playerId -> { baseScore, delta, timeout }
 
   let editingPlayerId = null;
   let longPressTimer = null;
   let longPressInterval = null;
+  let audioContext = null;
 
   // DOM Elements
   const playerList = document.getElementById('player-list');
@@ -25,6 +42,7 @@
   const colorPicker = document.getElementById('color-picker');
   const editNameInput = document.getElementById('edit-name');
   const btnAddPlayer = document.getElementById('btn-add-player');
+  const btnUndo = document.getElementById('btn-undo');
   const btnReset = document.getElementById('btn-reset');
   const btnSort = document.getElementById('btn-sort');
   const btnSound = document.getElementById('btn-sound');
@@ -34,10 +52,29 @@
   // Initialize
   function init() {
     loadState();
+    initAudio();
     renderColorPicker();
     render();
     bindEvents();
     updateSoundButton();
+    updateUndoButton();
+  }
+
+  // Audio - Safari requires user gesture to create AudioContext
+  function initAudio() {
+    // Create on first user interaction
+    const createContext = () => {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      // Resume if suspended (Safari)
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+    };
+
+    document.addEventListener('touchstart', createContext, { once: true });
+    document.addEventListener('click', createContext, { once: true });
   }
 
   // Storage
@@ -61,6 +98,28 @@
     }
   }
 
+  // Undo
+  function pushUndo() {
+    undoStack.push(JSON.stringify(state.players));
+    if (undoStack.length > MAX_UNDO) {
+      undoStack.shift();
+    }
+    updateUndoButton();
+  }
+
+  function undo() {
+    if (undoStack.length === 0) return;
+    state.players = JSON.parse(undoStack.pop());
+    saveState();
+    clearAllDeltas();
+    render();
+    updateUndoButton();
+  }
+
+  function updateUndoButton() {
+    btnUndo.disabled = undoStack.length === 0;
+  }
+
   // Generate unique ID
   function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
@@ -77,6 +136,7 @@
 
   // Add player
   function addPlayer() {
+    pushUndo();
     const player = {
       id: generateId(),
       name: `Player ${state.players.length + 1}`,
@@ -86,13 +146,14 @@
     state.players.push(player);
     saveState();
     render();
-    // Open edit modal for new player
     openEditModal(player.id);
   }
 
   // Remove player
   function removePlayer(id) {
+    pushUndo();
     state.players = state.players.filter(p => p.id !== id);
+    delete playerDeltas[id];
     saveState();
     closeEditModal();
     render();
@@ -108,21 +169,73 @@
     }
   }
 
-  // Change score
-  function changeScore(id, delta) {
+  // Change score with running total display
+  function changeScore(id, delta, isLongPress = false) {
     const player = state.players.find(p => p.id === id);
-    if (player) {
-      player.score += delta;
-      saveState();
-      renderPlayerScore(id, player.score);
-      playSound();
+    if (!player) return;
+
+    // Only push undo at start of a change sequence (not during long press)
+    if (!isLongPress && !playerDeltas[id]) {
+      pushUndo();
     }
+
+    // Track delta for running total display
+    if (!playerDeltas[id]) {
+      playerDeltas[id] = {
+        baseScore: player.score,
+        delta: 0,
+        timeout: null
+      };
+    }
+
+    // Clear existing timeout
+    if (playerDeltas[id].timeout) {
+      clearTimeout(playerDeltas[id].timeout);
+    }
+
+    // Update delta
+    playerDeltas[id].delta += delta;
+    player.score += delta;
+    saveState();
+
+    // Render the score with delta
+    renderPlayerScore(id, player.score, playerDeltas[id].baseScore, playerDeltas[id].delta);
+    playSound();
+
+    // Clear delta display after 2 seconds of inactivity
+    playerDeltas[id].timeout = setTimeout(() => {
+      clearDelta(id);
+    }, 2000);
+  }
+
+  function clearDelta(id) {
+    if (playerDeltas[id]) {
+      clearTimeout(playerDeltas[id].timeout);
+      delete playerDeltas[id];
+      const player = state.players.find(p => p.id === id);
+      if (player) {
+        renderPlayerScore(id, player.score, null, null);
+      }
+    }
+  }
+
+  function clearAllDeltas() {
+    Object.keys(playerDeltas).forEach(id => {
+      if (playerDeltas[id].timeout) {
+        clearTimeout(playerDeltas[id].timeout);
+      }
+    });
+    playerDeltas = {};
   }
 
   // Reset all scores
   function resetScores() {
     if (state.players.length === 0) return;
+    if (state.players.every(p => p.score === 0)) return;
+
+    pushUndo();
     state.players.forEach(p => p.score = 0);
+    clearAllDeltas();
     saveState();
     render();
   }
@@ -131,34 +244,33 @@
   function sortPlayers() {
     if (state.players.length < 2) return;
 
-    // Cycle sort mode
-    if (state.sortMode === 'none' || state.sortMode === 'asc') {
-      state.sortMode = 'desc';
-      state.players.sort((a, b) => b.score - a.score);
-    } else {
-      state.sortMode = 'asc';
-      state.players.sort((a, b) => a.score - b.score);
-    }
-
+    pushUndo();
+    // Sort high to low
+    state.players.sort((a, b) => b.score - a.score);
     saveState();
     render();
   }
 
   // Sound
   function playSound() {
-    if (!state.soundEnabled) return;
+    if (!state.soundEnabled || !audioContext) return;
+
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = ctx.createOscillator();
-      const gain = ctx.createGain();
+      // Resume context if needed (Safari)
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
       oscillator.connect(gain);
-      gain.connect(ctx.destination);
-      oscillator.frequency.value = 800;
+      gain.connect(audioContext.destination);
+      oscillator.frequency.value = 880;
       oscillator.type = 'sine';
-      gain.gain.setValueAtTime(0.1, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.08);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.08);
     } catch (e) {
       // Sound not supported
     }
@@ -168,7 +280,13 @@
     state.soundEnabled = !state.soundEnabled;
     saveState();
     updateSoundButton();
-    if (state.soundEnabled) playSound();
+    if (state.soundEnabled) {
+      // Initialize audio on enable
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      playSound();
+    }
   }
 
   function updateSoundButton() {
@@ -184,8 +302,12 @@
     editNameInput.value = player.name;
     updateColorPickerSelection(player.color);
     editModal.hidden = false;
-    editNameInput.focus();
-    editNameInput.select();
+
+    // Delay focus to ensure modal is visible
+    setTimeout(() => {
+      editNameInput.focus();
+      editNameInput.select();
+    }, 50);
   }
 
   function closeEditModal() {
@@ -218,7 +340,7 @@
       playerList.innerHTML = `
         <div class="empty-state">
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
           </svg>
           <p>Tap + to add players</p>
         </div>
@@ -226,29 +348,51 @@
       return;
     }
 
-    playerList.innerHTML = state.players.map(player => `
-      <div class="player-row" data-id="${player.id}" style="background-color: ${player.color}; color: ${getTextColor(player.color)}">
-        <span class="player-name">${escapeHtml(player.name)}</span>
-        <span class="player-score" data-score-id="${player.id}">${player.score}</span>
-        <button class="score-btn btn-minus" data-id="${player.id}" data-delta="-1" aria-label="Decrease score">−</button>
-        <button class="score-btn btn-plus" data-id="${player.id}" data-delta="1" aria-label="Increase score">+</button>
-      </div>
-    `).join('');
+    playerList.innerHTML = state.players.map(player => {
+      const deltaInfo = playerDeltas[player.id];
+      const showDelta = deltaInfo && deltaInfo.delta !== 0;
+      const deltaText = showDelta
+        ? `${deltaInfo.baseScore} ${deltaInfo.delta >= 0 ? '+' : '−'} ${Math.abs(deltaInfo.delta)} =`
+        : '';
+
+      return `
+        <div class="player-row" data-id="${player.id}" style="background-color: ${player.color}; color: ${getTextColor(player.color)}">
+          <span class="player-name">${escapeHtml(player.name)}</span>
+          <div class="score-display">
+            <span class="score-delta ${showDelta ? 'visible' : ''}" data-delta-id="${player.id}">${deltaText}</span>
+            <span class="player-score" data-score-id="${player.id}">${player.score}</span>
+          </div>
+          <button class="score-btn btn-minus" data-id="${player.id}" data-delta="-1" aria-label="Decrease score">−</button>
+          <button class="score-btn btn-plus" data-id="${player.id}" data-delta="1" aria-label="Increase score">+</button>
+        </div>
+      `;
+    }).join('');
   }
 
-  function renderPlayerScore(id, score) {
-    const el = document.querySelector(`[data-score-id="${id}"]`);
-    if (el) {
-      el.textContent = score;
-      el.classList.remove('bump');
-      void el.offsetWidth; // Trigger reflow
-      el.classList.add('bump');
+  function renderPlayerScore(id, score, baseScore, delta) {
+    const scoreEl = document.querySelector(`[data-score-id="${id}"]`);
+    const deltaEl = document.querySelector(`[data-delta-id="${id}"]`);
+
+    if (scoreEl) {
+      scoreEl.textContent = score;
+      scoreEl.classList.remove('bump');
+      void scoreEl.offsetWidth; // Trigger reflow
+      scoreEl.classList.add('bump');
+    }
+
+    if (deltaEl) {
+      if (delta !== null && delta !== 0) {
+        deltaEl.textContent = `${baseScore} ${delta >= 0 ? '+' : '−'} ${Math.abs(delta)} =`;
+        deltaEl.classList.add('visible');
+      } else {
+        deltaEl.classList.remove('visible');
+      }
     }
   }
 
   function renderColorPicker() {
     colorPicker.innerHTML = COLORS.map(color => `
-      <button class="color-swatch" data-color="${color}" style="background-color: ${color}" aria-label="Select ${color}"></button>
+      <button class="color-swatch" data-color="${color}" style="background-color: ${color}" aria-label="Select color"></button>
     `).join('');
   }
 
@@ -276,13 +420,13 @@
 
     longPressTimer = setTimeout(() => {
       longPressInterval = setInterval(() => {
-        changeScore(id, delta);
+        changeScore(id, delta, true);
         count++;
-        // Accelerate
+        // Accelerate after some presses
         if (count > 10 && delay > 50) {
           clearInterval(longPressInterval);
           delay = 50;
-          longPressInterval = setInterval(() => changeScore(id, delta), delay);
+          longPressInterval = setInterval(() => changeScore(id, delta, true), delay);
         }
       }, delay);
     }, 300);
@@ -301,24 +445,18 @@
 
   // Event bindings
   function bindEvents() {
-    // Add player
     btnAddPlayer.addEventListener('click', addPlayer);
-
-    // Reset scores
+    btnUndo.addEventListener('click', undo);
     btnReset.addEventListener('click', resetScores);
-
-    // Sort
     btnSort.addEventListener('click', sortPlayers);
-
-    // Sound toggle
     btnSound.addEventListener('click', toggleSound);
 
-    // Player list interactions
+    // Player list - tap on row to edit
     playerList.addEventListener('click', (e) => {
       const scoreBtn = e.target.closest('.score-btn');
       if (scoreBtn) {
         e.stopPropagation();
-        return; // Handled by mouseup/touchend
+        return;
       }
 
       const row = e.target.closest('.player-row');
@@ -327,17 +465,13 @@
       }
     });
 
-    // Score buttons - tap
-    playerList.addEventListener('mouseup', handleScoreButtonUp);
-    playerList.addEventListener('touchend', handleScoreButtonUp);
-
-    // Score buttons - long press start
+    // Score buttons - handle both mouse and touch
     playerList.addEventListener('mousedown', handleScoreButtonDown);
     playerList.addEventListener('touchstart', handleScoreButtonDown, { passive: true });
 
-    // Score buttons - long press cancel
-    playerList.addEventListener('mouseleave', stopLongPress);
-    playerList.addEventListener('touchcancel', stopLongPress);
+    document.addEventListener('mouseup', handleScoreButtonUp);
+    document.addEventListener('touchend', handleScoreButtonUp);
+    document.addEventListener('touchcancel', stopLongPress);
 
     // Edit modal
     btnDeletePlayer.addEventListener('click', () => {
@@ -351,51 +485,51 @@
       if (e.key === 'Escape') closeEditModal();
     });
 
-    // Color picker
     colorPicker.addEventListener('click', (e) => {
       const swatch = e.target.closest('.color-swatch');
       if (swatch) selectColor(swatch.dataset.color);
     });
 
-    // Close modal on backdrop click
     editModal.addEventListener('click', (e) => {
       if (e.target === editModal) closeEditModal();
     });
 
-    // Prevent zoom on double tap
+    // Prevent double-tap zoom
+    let lastTap = 0;
     document.addEventListener('touchend', (e) => {
       const now = Date.now();
-      if (now - (document.lastTouchEnd || 0) < 300) {
+      if (now - lastTap < 300) {
         e.preventDefault();
       }
-      document.lastTouchEnd = now;
+      lastTap = now;
     }, { passive: false });
   }
+
+  let activeButtonId = null;
 
   function handleScoreButtonDown(e) {
     const btn = e.target.closest('.score-btn');
     if (!btn) return;
 
-    const id = btn.dataset.id;
+    activeButtonId = btn.dataset.id;
     const delta = parseInt(btn.dataset.delta, 10);
-    startLongPress(id, delta);
+    startLongPress(activeButtonId, delta);
   }
 
   function handleScoreButtonUp(e) {
-    const btn = e.target.closest('.score-btn');
     stopLongPress();
 
-    if (!btn) return;
-    e.preventDefault();
-    e.stopPropagation();
+    if (!activeButtonId) return;
 
-    const id = btn.dataset.id;
-    const delta = parseInt(btn.dataset.delta, 10);
+    const btn = e.target.closest?.('.score-btn');
 
-    // Only trigger single increment if no long press occurred
-    if (!longPressInterval) {
-      changeScore(id, delta);
+    // Only trigger single increment if we didn't do a long press
+    if (!longPressInterval && btn && btn.dataset.id === activeButtonId) {
+      const delta = parseInt(btn.dataset.delta, 10);
+      changeScore(activeButtonId, delta, false);
     }
+
+    activeButtonId = null;
   }
 
   // Start app

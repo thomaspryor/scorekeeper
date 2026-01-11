@@ -10,60 +10,89 @@ html, body {
   height: 100%;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background: #1a1a1a;
+  background: #000;
   color: #000;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
 }
 
-/* App Layout */
+/* App Layout - No sidebars, just top/bottom toolbars */
 #app {
-  display: grid;
-  grid-template-columns: 60px 1fr 60px;
+  display: flex;
+  flex-direction: column;
   height: 100%;
   height: 100dvh;
 }
 
-/* Sidebars */
-.sidebar {
+/* Toolbars */
+.toolbar {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background: #4a4a4a;
+  align-items: center;
+  justify-content: space-around;
+  background: #1a1a1a;
   padding: 8px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.sidebar-btn {
-  width: 44px;
-  height: 44px;
-  border: none;
-  border-radius: 8px;
-  background: #666;
-  color: #fff;
-  cursor: pointer;
+.toolbar-top {
+  padding-top: max(8px, env(safe-area-inset-top));
+}
+
+.toolbar-bottom {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+.toolbar-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s, transform 0.1s;
+  gap: 6px;
+  min-width: 50px;
+  height: 44px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 8px;
+  background: #333;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
 }
 
-.sidebar-btn:hover {
-  background: #777;
+.toolbar-btn:hover {
+  background: #444;
 }
 
-.sidebar-btn:active {
+.toolbar-btn:active {
   transform: scale(0.95);
-  background: #888;
+  background: #555;
 }
 
-.sidebar-btn svg {
+.toolbar-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.toolbar-btn:disabled:active {
+  transform: none;
+}
+
+.toolbar-btn svg {
   width: 24px;
   height: 24px;
+  flex-shrink: 0;
+}
+
+.sort-label {
+  display: inline;
 }
 
 /* Player List */
 .player-list {
+  flex: 1;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -76,11 +105,12 @@ html, body {
   display: grid;
   grid-template-columns: 1fr auto auto auto;
   align-items: center;
-  padding: 12px 16px;
-  min-height: 70px;
-  gap: 12px;
+  padding: 8px 12px;
+  min-height: 60px;
+  gap: 8px;
   cursor: pointer;
   transition: filter 0.15s;
+  border-bottom: 2px solid rgba(0,0,0,0.15);
 }
 
 .player-row:active {
@@ -88,28 +118,47 @@ html, body {
 }
 
 .player-name {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* Score display - shows running total */
+.score-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
+  justify-content: flex-end;
+}
+
 .player-score {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  min-width: 60px;
-  text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+.score-delta {
+  font-size: 1rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+
+.score-delta.visible {
+  opacity: 0.7;
 }
 
 .score-btn {
   width: 50px;
   height: 50px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: rgba(0, 0, 0, 0.25);
   color: inherit;
   font-size: 2rem;
@@ -137,7 +186,7 @@ html, body {
 
 @keyframes bump {
   0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+  50% { transform: scale(1.15); }
   100% { transform: scale(1); }
 }
 
@@ -148,11 +197,11 @@ html, body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding-top: 20vh;
+  padding: 20px;
   z-index: 100;
 }
 
@@ -161,27 +210,27 @@ html, body {
 }
 
 .edit-modal-content {
-  background: #3a3a3a;
-  border-radius: 12px;
-  padding: 16px;
-  width: 90%;
-  max-width: 400px;
+  background: #2a2a2a;
+  border-radius: 16px;
+  padding: 20px;
+  width: 100%;
+  max-width: 360px;
 }
 
-/* Color Picker */
+/* Color Picker - reordered for better distinction */
 .color-picker {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .color-swatch {
   aspect-ratio: 1;
-  border: none;
+  border: 3px solid transparent;
   border-radius: 8px;
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition: transform 0.1s, border-color 0.1s;
 }
 
 .color-swatch:hover {
@@ -189,7 +238,7 @@ html, body {
 }
 
 .color-swatch.selected {
-  box-shadow: 0 0 0 3px #fff, 0 0 0 5px #000;
+  border-color: #fff;
   transform: scale(1.1);
 }
 
@@ -222,21 +271,21 @@ html, body {
 }
 
 .delete-btn {
-  background: #e74c3c;
+  background: #dc3545;
   color: #fff;
 }
 
 .delete-btn:hover {
-  background: #c0392b;
+  background: #c82333;
 }
 
 .confirm-btn {
-  background: #2ecc71;
+  background: #28a745;
   color: #fff;
 }
 
 .confirm-btn:hover {
-  background: #27ae60;
+  background: #218838;
 }
 
 .edit-name-input {
@@ -248,13 +297,13 @@ html, body {
   font-size: 1.25rem;
   font-weight: 700;
   text-transform: uppercase;
-  background: #50c8c8;
+  background: #fff;
   color: #000;
   outline: none;
 }
 
-.edit-name-input::placeholder {
-  color: rgba(0, 0, 0, 0.4);
+.edit-name-input:focus {
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
 }
 
 /* Empty State */
@@ -264,7 +313,7 @@ html, body {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #888;
+  color: #666;
   text-align: center;
   padding: 20px;
 }
@@ -281,32 +330,42 @@ html, body {
 }
 
 /* Sound button state */
-.sidebar-btn.sound-off .sound-on {
+.toolbar-btn .sound-off {
   display: none;
 }
 
-.sidebar-btn.sound-off .sound-off {
-  display: block !important;
+.toolbar-btn.sound-off .sound-on {
+  display: none;
 }
 
-/* Landscape adjustments */
-@media (orientation: landscape) and (max-height: 500px) {
-  #app {
-    grid-template-columns: 50px 1fr 50px;
+.toolbar-btn.sound-off .sound-off {
+  display: block;
+}
+
+/* Landscape mode */
+@media (orientation: landscape) {
+  .toolbar {
+    padding: 4px 16px;
   }
 
-  .sidebar {
-    padding: 4px;
+  .toolbar-top {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
   }
 
-  .sidebar-btn {
-    width: 40px;
+  .toolbar-bottom {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  .toolbar-btn {
+    min-width: 44px;
     height: 40px;
   }
 
   .player-row {
-    min-height: 55px;
-    padding: 8px 12px;
+    min-height: 50px;
+    padding: 6px 16px;
   }
 
   .player-name {
@@ -315,64 +374,80 @@ html, body {
 
   .player-score {
     font-size: 1.5rem;
-    min-width: 50px;
   }
 
   .score-btn {
-    width: 42px;
-    height: 42px;
-    font-size: 1.5rem;
+    width: 44px;
+    height: 44px;
+    font-size: 1.6rem;
+  }
+
+  .player-list {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }
 
-/* Larger screens */
-@media (min-width: 768px) {
-  #app {
-    grid-template-columns: 80px 1fr 80px;
+/* Small height landscape */
+@media (orientation: landscape) and (max-height: 400px) {
+  .toolbar {
+    padding: 2px 12px;
   }
 
-  .sidebar-btn {
-    width: 56px;
-    height: 56px;
+  .toolbar-btn {
+    height: 36px;
+    min-width: 40px;
   }
 
-  .sidebar-btn svg {
-    width: 32px;
-    height: 32px;
+  .sort-label {
+    display: none;
   }
 
   .player-row {
-    min-height: 80px;
-    padding: 16px 24px;
+    min-height: 44px;
+    padding: 4px 12px;
   }
 
   .player-name {
-    font-size: 2rem;
+    font-size: 1rem;
   }
 
   .player-score {
-    font-size: 2.5rem;
-    min-width: 80px;
+    font-size: 1.3rem;
+  }
+
+  .score-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 1.4rem;
+  }
+}
+
+/* Tablet/larger screens */
+@media (min-width: 768px) {
+  .toolbar-btn {
+    min-width: 60px;
+    height: 50px;
+    padding: 0 16px;
+  }
+
+  .player-row {
+    min-height: 70px;
+    padding: 12px 24px;
+    gap: 12px;
+  }
+
+  .player-name {
+    font-size: 1.8rem;
+  }
+
+  .player-score {
+    font-size: 2.2rem;
   }
 
   .score-btn {
     width: 60px;
     height: 60px;
-    font-size: 2.5rem;
-  }
-}
-
-/* Safe area insets for notched devices */
-@supports (padding: env(safe-area-inset-left)) {
-  .sidebar-left {
-    padding-left: max(8px, env(safe-area-inset-left));
-  }
-
-  .sidebar-right {
-    padding-right: max(8px, env(safe-area-inset-right));
-  }
-
-  .player-list {
-    padding-bottom: env(safe-area-inset-bottom);
+    font-size: 2.2rem;
   }
 }

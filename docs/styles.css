@@ -93,6 +93,7 @@ html, body {
 /* Player List */
 .player-list {
   flex: 1;
+  min-height: 0; /* Critical for flex scroll */
   display: flex;
   flex-direction: column;
   overflow-y: auto;

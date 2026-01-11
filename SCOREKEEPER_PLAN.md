@@ -21,10 +21,10 @@ A mobile-first web app to replace **Scorekeeper XL** (by Matt Rix), which is no 
 - **Support for negative scores** - For games that allow it
 
 ### 3. Scoreboard Controls
-- **Sort players** - "123" button (top-right) sorts lowest-to-highest
+- **Sort players** - "123" button (top-right) manually sorts by score
 - **Reset all scores** - Reload icon (bottom-left) resets to 0
 - **Sound effects** - Speaker icon (bottom-right) toggles sounds
-- **Auto-sort option** - Leading player can appear on top
+- **Sort is manual, not auto** - Tap button to re-sort; list stays stable during input
 
 ### 4. Data Persistence (No Login Required)
 - **Auto-save** - Every change instantly saved to localStorage
@@ -192,7 +192,7 @@ scorekeeper/
 9. [ ] Edit player name (inline)
 10. [ ] **Persistent localStorage** - Survives browser close, phone lock, app switch
 11. [ ] Reset all scores
-12. [ ] **Sort functionality** - THE killer feature (auto-rearrange leaders)
+12. [ ] **Sort button** - Manual sort by score (NOT auto-sort during input)
 
 ### Phase 2: Polish & UX
 **Goal: Match Scorekeeper XL's satisfying UX**
@@ -254,12 +254,16 @@ Tap "+" button:
   5. Auto-focus name field for editing
 ```
 
-### Sort Toggle
+### Sort Button (Manual)
 ```
 Tap sort button:
-  1. Cycle: Manual → Low-High → High-Low → Manual
+  1. Re-sort list by score (low-to-high or high-to-low)
   2. Animate reorder with smooth transitions
-  3. Update icon to show current mode
+  3. List stays in new order until next sort tap
+  4. Scores can be edited without list jumping around
+
+Key: Sorting is ON-DEMAND, not automatic. Users enter scores
+in position order, then tap sort to see standings.
 ```
 
 ---
@@ -312,10 +316,12 @@ Based on App Store reviews, users requested these enhancements:
 > "It legitimately DID NOT need updates, that's not a knock against it"
 > "Most used app since my iPhone 3GS"
 
-**Killer feature - auto-sorting:**
+**Killer feature - sort button:**
 > "The leading team automatically appeared on top"
-> "None (paid or free) had the option of automatically rearranging leaders after every round"
+> "None (paid or free) had the option of automatically rearranging leaders"
 > "This one is what I was looking for" (differentiator from competitors)
+
+**Note**: Sort is triggered manually via button tap - NOT automatic during input (which would be frustrating as the list constantly rearranges while you're entering scores).
 
 **Large event usage:**
 > "Used for youth event with 2,000 people - projected on huge screen"

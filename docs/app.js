@@ -39,6 +39,20 @@
   let wasLongPress = false; // Track if long press happened
   let audioContext = null;
 
+  // Swipe tracking
+  let swipeStartX = null;
+  let swipeStartY = null;
+  let swipeRow = null;
+  let swipeStartTime = null;
+
+  // Drag reorder tracking
+  let draggedPlayer = null;
+  let dragStartY = null;
+  let dragPlaceholder = null;
+
+  // PWA install prompt
+  let deferredInstallPrompt = null;
+
   // DOM Elements
   const playerList = document.getElementById('player-list');
   const editModal = document.getElementById('edit-modal');
@@ -155,7 +169,8 @@
       id: generateId(),
       name: '',
       score: 0,
-      color: getNextColor()
+      color: getNextColor(),
+      history: [] // Score change history
     };
     state.players.push(player);
     state.originalOrder.push(player.id); // Add to original order
@@ -224,6 +239,7 @@
 
     renderPlayerScore(id, player.score, playerDeltas[id].baseScore, playerDeltas[id].delta);
     playSound();
+    haptic('light');
 
     playerDeltas[id].timeout = setTimeout(() => {
       clearDelta(id);
@@ -232,7 +248,27 @@
 
   function clearDelta(id) {
     if (playerDeltas[id]) {
+      const delta = playerDeltas[id].delta;
       clearTimeout(playerDeltas[id].timeout);
+
+      // Record to history if there was a meaningful change
+      if (delta !== 0) {
+        const player = state.players.find(p => p.id === id);
+        if (player) {
+          if (!player.history) player.history = [];
+          player.history.push({
+            delta: delta,
+            score: player.score,
+            time: Date.now()
+          });
+          // Keep last 50 history entries per player
+          if (player.history.length > 50) {
+            player.history.shift();
+          }
+          saveState();
+        }
+      }
+
       delete playerDeltas[id];
       const player = state.players.find(p => p.id === id);
       if (player) {
@@ -292,6 +328,7 @@
     // Play ta-dah sound and animate after render
     playSortSound();
     animateSort();
+    haptic('success');
   }
 
   // Animate sort with staggered slide-in
@@ -388,6 +425,32 @@
     }
   }
 
+  // Haptic feedback
+  function haptic(style = 'light') {
+    if (!navigator.vibrate) return;
+    try {
+      switch (style) {
+        case 'light':
+          navigator.vibrate(10);
+          break;
+        case 'medium':
+          navigator.vibrate(20);
+          break;
+        case 'heavy':
+          navigator.vibrate(30);
+          break;
+        case 'success':
+          navigator.vibrate([10, 50, 20]);
+          break;
+        case 'warning':
+          navigator.vibrate([20, 30, 20, 30, 20]);
+          break;
+      }
+    } catch (e) {
+      // Haptics not supported
+    }
+  }
+
   function updateSoundButton() {
     btnSound.classList.toggle('sound-off', !state.soundEnabled);
   }
@@ -470,16 +533,26 @@
         ? `${deltaInfo.baseScore} ${deltaInfo.delta >= 0 ? '+' : '−'} ${Math.abs(deltaInfo.delta)} =`
         : '';
       const displayName = player.name || `Player ${state.players.findIndex(p => p.id === player.id) + 1}`;
+      const historyCount = player.history ? player.history.length : 0;
 
       return `
-        <div class="player-row" data-id="${player.id}" style="background-color: ${player.color}; color: ${getTextColor(player.color)}">
-          <span class="player-name">${escapeHtml(displayName)}</span>
-          <div class="score-display">
-            <span class="score-delta ${showDelta ? 'visible' : ''}" data-delta-id="${player.id}">${deltaText}</span>
-            <span class="player-score" data-score-id="${player.id}">${player.score}</span>
+        <div class="player-row-wrapper" data-id="${player.id}">
+          <div class="player-row" data-id="${player.id}" style="background-color: ${player.color}; color: ${getTextColor(player.color)}">
+            <div class="drag-handle" data-drag="${player.id}" aria-label="Drag to reorder">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            </div>
+            <span class="player-name">${escapeHtml(displayName)}</span>
+            <div class="score-display">
+              ${historyCount > 0 ? `<span class="history-badge" data-history="${player.id}">${historyCount}</span>` : ''}
+              <span class="score-delta ${showDelta ? 'visible' : ''}" data-delta-id="${player.id}">${deltaText}</span>
+              <span class="player-score" data-score-id="${player.id}">${player.score}</span>
+            </div>
+            <button class="score-btn btn-minus" data-id="${player.id}" data-delta="-1" aria-label="Decrease score">−</button>
+            <button class="score-btn btn-plus" data-id="${player.id}" data-delta="1" aria-label="Increase score">+</button>
           </div>
-          <button class="score-btn btn-minus" data-id="${player.id}" data-delta="-1" aria-label="Decrease score">−</button>
-          <button class="score-btn btn-plus" data-id="${player.id}" data-delta="1" aria-label="Increase score">+</button>
+          <div class="swipe-delete-bg" data-swipe-delete="${player.id}">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </div>
         </div>
       `;
     }).join('');
@@ -579,8 +652,22 @@
         return;
       }
 
+      // Handle history badge click
+      const historyBadge = e.target.closest('.history-badge');
+      if (historyBadge) {
+        e.stopPropagation();
+        showHistory(historyBadge.dataset.history);
+        return;
+      }
+
       const scoreBtn = e.target.closest('.score-btn');
       if (scoreBtn) {
+        e.stopPropagation();
+        return;
+      }
+
+      const dragHandle = e.target.closest('.drag-handle');
+      if (dragHandle) {
         e.stopPropagation();
         return;
       }
@@ -594,6 +681,19 @@
     // Score buttons - handle both mouse and touch
     playerList.addEventListener('mousedown', handleScoreButtonDown);
     playerList.addEventListener('touchstart', handleScoreButtonDown, { passive: false });
+
+    // Swipe to delete
+    playerList.addEventListener('touchstart', handleSwipeStart, { passive: true });
+    playerList.addEventListener('touchmove', handleSwipeMove, { passive: true });
+    playerList.addEventListener('touchend', handleSwipeEnd, { passive: true });
+
+    // Drag to reorder
+    playerList.addEventListener('touchstart', handleDragStart, { passive: false });
+    playerList.addEventListener('touchmove', handleDragMove, { passive: false });
+    playerList.addEventListener('touchend', handleDragEnd, { passive: true });
+    playerList.addEventListener('mousedown', handleDragStart);
+    document.addEventListener('mousemove', handleDragMove);
+    document.addEventListener('mouseup', handleDragEnd);
 
     document.addEventListener('mouseup', handleScoreButtonUp);
     document.addEventListener('touchend', handleScoreButtonUp);
@@ -670,6 +770,298 @@
     wasLongPress = false;
   }
 
+  // Swipe to delete
+  function handleSwipeStart(e) {
+    const row = e.target.closest('.player-row');
+    if (!row || e.target.closest('.score-btn') || e.target.closest('.drag-handle')) return;
+
+    const touch = e.touches ? e.touches[0] : e;
+    swipeStartX = touch.clientX;
+    swipeStartY = touch.clientY;
+    swipeRow = row.closest('.player-row-wrapper');
+    swipeStartTime = Date.now();
+  }
+
+  function handleSwipeMove(e) {
+    if (!swipeRow || !swipeStartX) return;
+
+    const touch = e.touches ? e.touches[0] : e;
+    const deltaX = touch.clientX - swipeStartX;
+    const deltaY = touch.clientY - swipeStartY;
+
+    // If more vertical than horizontal, cancel swipe
+    if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 10) {
+      resetSwipe();
+      return;
+    }
+
+    // Only allow left swipe
+    if (deltaX > 0) {
+      resetSwipe();
+      return;
+    }
+
+    const playerRow = swipeRow.querySelector('.player-row');
+    if (playerRow) {
+      const swipeAmount = Math.max(deltaX, -120);
+      playerRow.style.transform = `translateX(${swipeAmount}px)`;
+      playerRow.style.transition = 'none';
+    }
+  }
+
+  function handleSwipeEnd(e) {
+    if (!swipeRow || !swipeStartX) return;
+
+    const playerRow = swipeRow.querySelector('.player-row');
+    if (!playerRow) {
+      resetSwipe();
+      return;
+    }
+
+    const touch = e.changedTouches ? e.changedTouches[0] : e;
+    const deltaX = touch.clientX - swipeStartX;
+    const velocity = Math.abs(deltaX) / (Date.now() - swipeStartTime);
+
+    // If swiped far enough or fast enough, delete
+    if (deltaX < -80 || (deltaX < -40 && velocity > 0.5)) {
+      const playerId = swipeRow.dataset.id;
+      playerRow.style.transition = 'transform 0.2s ease-out';
+      playerRow.style.transform = 'translateX(-100%)';
+      haptic('warning');
+
+      setTimeout(() => {
+        const player = state.players.find(p => p.id === playerId);
+        if (player && confirm(`Delete ${player.name || 'this player'}?`)) {
+          pushUndo();
+          state.players = state.players.filter(p => p.id !== playerId);
+          state.originalOrder = state.originalOrder.filter(pid => pid !== playerId);
+          delete playerDeltas[playerId];
+          saveState();
+          render();
+        } else {
+          playerRow.style.transition = 'transform 0.2s ease-out';
+          playerRow.style.transform = 'translateX(0)';
+        }
+      }, 200);
+    } else {
+      playerRow.style.transition = 'transform 0.2s ease-out';
+      playerRow.style.transform = 'translateX(0)';
+    }
+
+    resetSwipe();
+  }
+
+  function resetSwipe() {
+    swipeStartX = null;
+    swipeStartY = null;
+    swipeRow = null;
+    swipeStartTime = null;
+  }
+
+  // Drag to reorder
+  function handleDragStart(e) {
+    const handle = e.target.closest('.drag-handle');
+    if (!handle) return;
+
+    e.preventDefault();
+    const playerId = handle.dataset.drag;
+    const wrapper = handle.closest('.player-row-wrapper');
+    if (!wrapper) return;
+
+    draggedPlayer = playerId;
+    const touch = e.touches ? e.touches[0] : e;
+    dragStartY = touch.clientY;
+
+    wrapper.classList.add('dragging');
+    haptic('medium');
+
+    // Store original positions
+    const wrappers = playerList.querySelectorAll('.player-row-wrapper');
+    wrappers.forEach(w => {
+      const rect = w.getBoundingClientRect();
+      w.dataset.originalTop = rect.top;
+    });
+  }
+
+  function handleDragMove(e) {
+    if (!draggedPlayer) return;
+
+    e.preventDefault();
+    const touch = e.touches ? e.touches[0] : e;
+    const currentY = touch.clientY;
+    const deltaY = currentY - dragStartY;
+
+    const draggedWrapper = playerList.querySelector(`.player-row-wrapper[data-id="${draggedPlayer}"]`);
+    if (!draggedWrapper) return;
+
+    draggedWrapper.style.transform = `translateY(${deltaY}px)`;
+    draggedWrapper.style.zIndex = '100';
+
+    // Find which position we're over
+    const wrappers = Array.from(playerList.querySelectorAll('.player-row-wrapper'));
+    const draggedIndex = wrappers.findIndex(w => w.dataset.id === draggedPlayer);
+    const draggedRect = draggedWrapper.getBoundingClientRect();
+    const draggedCenter = draggedRect.top + draggedRect.height / 2;
+
+    wrappers.forEach((wrapper, i) => {
+      if (wrapper.dataset.id === draggedPlayer) return;
+
+      const rect = wrapper.getBoundingClientRect();
+      const center = rect.top + rect.height / 2;
+
+      if (i < draggedIndex && draggedCenter < center + rect.height / 2) {
+        wrapper.style.transform = `translateY(${draggedRect.height}px)`;
+      } else if (i > draggedIndex && draggedCenter > center - rect.height / 2) {
+        wrapper.style.transform = `translateY(-${draggedRect.height}px)`;
+      } else {
+        wrapper.style.transform = '';
+      }
+      wrapper.style.transition = 'transform 0.15s ease-out';
+    });
+  }
+
+  function handleDragEnd(e) {
+    if (!draggedPlayer) return;
+
+    const draggedWrapper = playerList.querySelector(`.player-row-wrapper[data-id="${draggedPlayer}"]`);
+    if (!draggedWrapper) {
+      resetDrag();
+      return;
+    }
+
+    const draggedRect = draggedWrapper.getBoundingClientRect();
+    const draggedCenter = draggedRect.top + draggedRect.height / 2;
+
+    // Calculate new position
+    const wrappers = Array.from(playerList.querySelectorAll('.player-row-wrapper'));
+    const draggedIndex = state.players.findIndex(p => p.id === draggedPlayer);
+    let newIndex = draggedIndex;
+
+    wrappers.forEach((wrapper, i) => {
+      if (wrapper.dataset.id === draggedPlayer) return;
+      const rect = wrapper.getBoundingClientRect();
+      const center = parseFloat(wrapper.dataset.originalTop) + rect.height / 2;
+
+      if (draggedCenter < center && i < newIndex) {
+        newIndex = i;
+      } else if (draggedCenter > center && i >= newIndex) {
+        newIndex = i;
+      }
+    });
+
+    // Move player in array
+    if (newIndex !== draggedIndex) {
+      pushUndo();
+      const [player] = state.players.splice(draggedIndex, 1);
+      state.players.splice(newIndex, 0, player);
+
+      // Update original order for unsort
+      const [orderId] = state.originalOrder.splice(
+        state.originalOrder.indexOf(draggedPlayer), 1
+      );
+      const targetId = state.players[newIndex === 0 ? 0 : newIndex - 1]?.id;
+      const targetOriginalIndex = targetId ? state.originalOrder.indexOf(targetId) : -1;
+      state.originalOrder.splice(
+        newIndex === 0 ? 0 : targetOriginalIndex + 1, 0, orderId
+      );
+
+      state.isSorted = false;
+      saveState();
+      haptic('success');
+    }
+
+    render();
+    updateSortButton();
+    resetDrag();
+  }
+
+  function resetDrag() {
+    const wrappers = playerList.querySelectorAll('.player-row-wrapper');
+    wrappers.forEach(w => {
+      w.classList.remove('dragging');
+      w.style.transform = '';
+      w.style.zIndex = '';
+      w.style.transition = '';
+    });
+    draggedPlayer = null;
+    dragStartY = null;
+  }
+
+  // Show history modal
+  function showHistory(playerId) {
+    const player = state.players.find(p => p.id === playerId);
+    if (!player || !player.history || player.history.length === 0) return;
+
+    const historyHtml = player.history.slice().reverse().map(h => {
+      const time = new Date(h.time);
+      const timeStr = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const sign = h.delta >= 0 ? '+' : '';
+      return `<div class="history-item"><span>${sign}${h.delta}</span><span>→ ${h.score}</span><span class="history-time">${timeStr}</span></div>`;
+    }).join('');
+
+    const modal = document.createElement('div');
+    modal.className = 'history-modal';
+    modal.innerHTML = `
+      <div class="history-modal-content">
+        <h3>${escapeHtml(player.name || 'Player')} History</h3>
+        <div class="history-list">${historyHtml}</div>
+        <button class="history-close-btn">Close</button>
+      </div>
+    `;
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal || e.target.classList.contains('history-close-btn')) {
+        modal.remove();
+      }
+    });
+
+    document.body.appendChild(modal);
+  }
+
+  // PWA install prompt
+  function initPWA() {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      showInstallBanner();
+    });
+  }
+
+  function showInstallBanner() {
+    if (!deferredInstallPrompt) return;
+
+    // Only show if not already installed and user hasn't dismissed
+    if (localStorage.getItem('pwa-install-dismissed')) return;
+
+    const banner = document.createElement('div');
+    banner.className = 'install-banner';
+    banner.innerHTML = `
+      <span>Install Scorekeeper for quick access!</span>
+      <button class="install-btn">Install</button>
+      <button class="install-dismiss">✕</button>
+    `;
+
+    banner.querySelector('.install-btn').addEventListener('click', async () => {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const { outcome } = await deferredInstallPrompt.userChoice;
+        if (outcome === 'accepted') {
+          haptic('success');
+        }
+        deferredInstallPrompt = null;
+      }
+      banner.remove();
+    });
+
+    banner.querySelector('.install-dismiss').addEventListener('click', () => {
+      localStorage.setItem('pwa-install-dismissed', 'true');
+      banner.remove();
+    });
+
+    document.body.appendChild(banner);
+  }
+
   // Start app
   init();
+  initPWA();
 })();

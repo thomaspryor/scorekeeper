@@ -2,17 +2,17 @@
 (function() {
   'use strict';
 
-  // Color palette - reordered for maximum distinction between adjacent colors
+  // Color palette - matches original Scorekeeper XL order
   const COLORS = [
     '#FF4136', // Red
-    '#2ECC40', // Green
-    '#0074D9', // Blue
-    '#FFDC00', // Yellow
-    '#B10DC9', // Purple
     '#FF851B', // Orange
-    '#39CCCC', // Teal
-    '#F012BE', // Magenta
+    '#FFDC00', // Yellow
+    '#2ECC40', // Green
     '#01FF70', // Lime
+    '#39CCCC', // Cyan
+    '#0074D9', // Blue
+    '#B10DC9', // Purple
+    '#F012BE', // Pink/Magenta
     '#AAAAAA', // Gray
     '#111111', // Black
     '#FFFFFF', // White
@@ -22,11 +22,9 @@
   let state = {
     players: [],
     soundEnabled: true,
-    isSorted: false
+    isSorted: false,
+    originalOrder: [] // Array of player IDs in original (unsorted) order
   };
-
-  // Store original order for unsort
-  let originalOrder = []; // Array of player IDs in original order
 
   // Undo stack
   let undoStack = [];
@@ -88,8 +86,10 @@
       if (saved) {
         const parsed = JSON.parse(saved);
         state = { ...state, ...parsed };
-        // Initialize original order from current player order
-        originalOrder = state.players.map(p => p.id);
+        // If no original order saved, initialize from current player order
+        if (!state.originalOrder || state.originalOrder.length === 0) {
+          state.originalOrder = state.players.map(p => p.id);
+        }
       }
     } catch (e) {
       console.warn('Failed to load state:', e);
@@ -108,7 +108,7 @@
   function pushUndo() {
     undoStack.push({
       players: JSON.stringify(state.players),
-      originalOrder: [...originalOrder],
+      originalOrder: [...state.originalOrder],
       isSorted: state.isSorted
     });
     if (undoStack.length > MAX_UNDO) {
@@ -121,7 +121,7 @@
     if (undoStack.length === 0) return;
     const snapshot = undoStack.pop();
     state.players = JSON.parse(snapshot.players);
-    originalOrder = snapshot.originalOrder;
+    state.originalOrder = snapshot.originalOrder;
     state.isSorted = snapshot.isSorted;
     saveState();
     clearAllDeltas();
@@ -158,7 +158,7 @@
       color: getNextColor()
     };
     state.players.push(player);
-    originalOrder.push(player.id); // Add to original order
+    state.originalOrder.push(player.id); // Add to original order
     state.isSorted = false; // Adding a player breaks sort
     saveState();
     render();
@@ -178,7 +178,7 @@
 
     pushUndo();
     state.players = state.players.filter(p => p.id !== id);
-    originalOrder = originalOrder.filter(pid => pid !== id);
+    state.originalOrder = state.originalOrder.filter(pid => pid !== id);
     delete playerDeltas[id];
     saveState();
     closeEditModal();
@@ -275,7 +275,7 @@
     if (state.isSorted) {
       // Unsort - restore original order
       const playerMap = new Map(state.players.map(p => [p.id, p]));
-      state.players = originalOrder
+      state.players = state.originalOrder
         .filter(id => playerMap.has(id))
         .map(id => playerMap.get(id));
       state.isSorted = false;

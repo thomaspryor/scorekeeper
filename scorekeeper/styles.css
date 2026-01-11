@@ -261,15 +261,17 @@ html, body {
 }
 
 .edit-btn {
-  width: 50px;
-  height: 50px;
+  width: 56px;
+  min-width: 56px;
+  height: 56px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.1s, background 0.15s;
+  flex-shrink: 0;
 }
 
 .edit-btn:active {
@@ -301,9 +303,9 @@ html, body {
 
 .edit-name-input {
   flex: 1;
-  height: 50px;
+  height: 56px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 0 16px;
   font-size: 1.25rem;
   font-weight: 700;

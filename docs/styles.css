@@ -202,11 +202,6 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  cursor: pointer;
-}
-
-.player-name:active {
-  opacity: 0.7;
 }
 
 /* Score display - shows running total */

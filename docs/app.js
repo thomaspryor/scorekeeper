@@ -49,7 +49,6 @@
   // Drag reorder tracking
   let draggedPlayer = null;
   let dragStartY = null;
-  let dragPlaceholder = null;
 
   // PWA install prompt
   let deferredInstallPrompt = null;

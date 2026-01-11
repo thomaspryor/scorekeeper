@@ -21,8 +21,12 @@
   // State
   let state = {
     players: [],
-    soundEnabled: true
+    soundEnabled: true,
+    isSorted: false
   };
+
+  // Store original order for unsort
+  let originalOrder = []; // Array of player IDs in original order
 
   // Undo stack
   let undoStack = [];
@@ -34,6 +38,7 @@
   let editingPlayerId = null;
   let longPressTimer = null;
   let longPressInterval = null;
+  let wasLongPress = false; // Track if long press happened
   let audioContext = null;
 
   // DOM Elements
@@ -58,16 +63,15 @@
     bindEvents();
     updateSoundButton();
     updateUndoButton();
+    updateSortButton();
   }
 
   // Audio - Safari requires user gesture to create AudioContext
   function initAudio() {
-    // Create on first user interaction
     const createContext = () => {
       if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
       }
-      // Resume if suspended (Safari)
       if (audioContext.state === 'suspended') {
         audioContext.resume();
       }
@@ -84,6 +88,8 @@
       if (saved) {
         const parsed = JSON.parse(saved);
         state = { ...state, ...parsed };
+        // Initialize original order from current player order
+        originalOrder = state.players.map(p => p.id);
       }
     } catch (e) {
       console.warn('Failed to load state:', e);
@@ -100,7 +106,11 @@
 
   // Undo
   function pushUndo() {
-    undoStack.push(JSON.stringify(state.players));
+    undoStack.push({
+      players: JSON.stringify(state.players),
+      originalOrder: [...originalOrder],
+      isSorted: state.isSorted
+    });
     if (undoStack.length > MAX_UNDO) {
       undoStack.shift();
     }
@@ -109,11 +119,15 @@
 
   function undo() {
     if (undoStack.length === 0) return;
-    state.players = JSON.parse(undoStack.pop());
+    const snapshot = undoStack.pop();
+    state.players = JSON.parse(snapshot.players);
+    originalOrder = snapshot.originalOrder;
+    state.isSorted = snapshot.isSorted;
     saveState();
     clearAllDeltas();
     render();
     updateUndoButton();
+    updateSortButton();
   }
 
   function updateUndoButton() {
@@ -139,20 +153,32 @@
     pushUndo();
     const player = {
       id: generateId(),
-      name: `Player ${state.players.length + 1}`,
+      name: '',
       score: 0,
       color: getNextColor()
     };
     state.players.push(player);
+    originalOrder.push(player.id); // Add to original order
+    state.isSorted = false; // Adding a player breaks sort
     saveState();
     render();
-    openEditModal(player.id);
+    updateSortButton();
+    openEditModal(player.id, true); // true = new player, focus input
   }
 
   // Remove player
   function removePlayer(id) {
+    const player = state.players.find(p => p.id === id);
+    if (!player) return;
+
+    // Confirm deletion
+    if (!confirm(`Delete ${player.name || 'this player'}?`)) {
+      return;
+    }
+
     pushUndo();
     state.players = state.players.filter(p => p.id !== id);
+    originalOrder = originalOrder.filter(pid => pid !== id);
     delete playerDeltas[id];
     saveState();
     closeEditModal();
@@ -188,21 +214,17 @@
       };
     }
 
-    // Clear existing timeout
     if (playerDeltas[id].timeout) {
       clearTimeout(playerDeltas[id].timeout);
     }
 
-    // Update delta
     playerDeltas[id].delta += delta;
     player.score += delta;
     saveState();
 
-    // Render the score with delta
     renderPlayerScore(id, player.score, playerDeltas[id].baseScore, playerDeltas[id].delta);
     playSound();
 
-    // Clear delta display after 2 seconds of inactivity
     playerDeltas[id].timeout = setTimeout(() => {
       clearDelta(id);
     }, 2000);
@@ -233,6 +255,10 @@
     if (state.players.length === 0) return;
     if (state.players.every(p => p.score === 0)) return;
 
+    if (!confirm('Reset all scores to 0?')) {
+      return;
+    }
+
     pushUndo();
     state.players.forEach(p => p.score = 0);
     clearAllDeltas();
@@ -240,15 +266,35 @@
     render();
   }
 
-  // Sort players
-  function sortPlayers() {
+  // Sort/Unsort players
+  function toggleSort() {
     if (state.players.length < 2) return;
 
     pushUndo();
-    // Sort high to low
-    state.players.sort((a, b) => b.score - a.score);
+
+    if (state.isSorted) {
+      // Unsort - restore original order
+      const playerMap = new Map(state.players.map(p => [p.id, p]));
+      state.players = originalOrder
+        .filter(id => playerMap.has(id))
+        .map(id => playerMap.get(id));
+      state.isSorted = false;
+    } else {
+      // Sort high to low
+      state.players.sort((a, b) => b.score - a.score);
+      state.isSorted = true;
+    }
+
     saveState();
     render();
+    updateSortButton();
+  }
+
+  function updateSortButton() {
+    const label = btnSort.querySelector('.sort-label');
+    if (label) {
+      label.textContent = state.isSorted ? 'Unsort' : 'Sort';
+    }
   }
 
   // Sound
@@ -256,7 +302,6 @@
     if (!state.soundEnabled || !audioContext) return;
 
     try {
-      // Resume context if needed (Safari)
       if (audioContext.state === 'suspended') {
         audioContext.resume();
       }
@@ -281,7 +326,6 @@
     saveState();
     updateSoundButton();
     if (state.soundEnabled) {
-      // Initialize audio on enable
       if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
       }
@@ -294,7 +338,7 @@
   }
 
   // Edit modal
-  function openEditModal(playerId) {
+  function openEditModal(playerId, isNewPlayer = false) {
     editingPlayerId = playerId;
     const player = state.players.find(p => p.id === playerId);
     if (!player) return;
@@ -303,23 +347,39 @@
     updateColorPickerSelection(player.color);
     editModal.hidden = false;
 
-    // Delay focus to ensure modal is visible
+    // Focus and show keyboard - use longer delay for Safari iOS
     setTimeout(() => {
       editNameInput.focus();
-      editNameInput.select();
-    }, 50);
+      // For new players, select all; for existing, put cursor at end
+      if (isNewPlayer || !player.name) {
+        editNameInput.value = ''; // Clear for new player
+        editNameInput.placeholder = `Player ${state.players.findIndex(p => p.id === playerId) + 1}`;
+      } else {
+        editNameInput.select();
+      }
+    }, 100);
   }
 
   function closeEditModal() {
+    // Auto-save name on close
+    if (editingPlayerId) {
+      const name = editNameInput.value.trim();
+      const playerIndex = state.players.findIndex(p => p.id === editingPlayerId);
+      const finalName = name || `Player ${playerIndex + 1}`;
+      updatePlayer(editingPlayerId, { name: finalName });
+    }
     editModal.hidden = true;
     editingPlayerId = null;
   }
 
   function confirmEdit() {
     if (!editingPlayerId) return;
-    const name = editNameInput.value.trim() || `Player ${state.players.findIndex(p => p.id === editingPlayerId) + 1}`;
-    updatePlayer(editingPlayerId, { name });
-    closeEditModal();
+    const name = editNameInput.value.trim();
+    const playerIndex = state.players.findIndex(p => p.id === editingPlayerId);
+    const finalName = name || `Player ${playerIndex + 1}`;
+    updatePlayer(editingPlayerId, { name: finalName });
+    editModal.hidden = true;
+    editingPlayerId = null;
   }
 
   function selectColor(color) {
@@ -354,10 +414,11 @@
       const deltaText = showDelta
         ? `${deltaInfo.baseScore} ${deltaInfo.delta >= 0 ? '+' : '−'} ${Math.abs(deltaInfo.delta)} =`
         : '';
+      const displayName = player.name || `Player ${state.players.findIndex(p => p.id === player.id) + 1}`;
 
       return `
         <div class="player-row" data-id="${player.id}" style="background-color: ${player.color}; color: ${getTextColor(player.color)}">
-          <span class="player-name">${escapeHtml(player.name)}</span>
+          <span class="player-name">${escapeHtml(displayName)}</span>
           <div class="score-display">
             <span class="score-delta ${showDelta ? 'visible' : ''}" data-delta-id="${player.id}">${deltaText}</span>
             <span class="player-score" data-score-id="${player.id}">${player.score}</span>
@@ -376,7 +437,7 @@
     if (scoreEl) {
       scoreEl.textContent = score;
       scoreEl.classList.remove('bump');
-      void scoreEl.offsetWidth; // Trigger reflow
+      void scoreEl.offsetWidth;
       scoreEl.classList.add('bump');
     }
 
@@ -396,7 +457,6 @@
     `).join('');
   }
 
-  // Determine text color for contrast
   function getTextColor(bgColor) {
     const hex = bgColor.replace('#', '');
     const r = parseInt(hex.substr(0, 2), 16);
@@ -406,7 +466,6 @@
     return luminance > 0.5 ? '#000000' : '#FFFFFF';
   }
 
-  // Escape HTML
   function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
@@ -415,14 +474,19 @@
 
   // Long press handling
   function startLongPress(id, delta) {
+    wasLongPress = false;
     let count = 0;
     let delay = 150;
 
     longPressTimer = setTimeout(() => {
+      wasLongPress = true;
+      // Push undo at start of long press
+      if (!playerDeltas[id]) {
+        pushUndo();
+      }
       longPressInterval = setInterval(() => {
         changeScore(id, delta, true);
         count++;
-        // Accelerate after some presses
         if (count > 10 && delay > 50) {
           clearInterval(longPressInterval);
           delay = 50;
@@ -448,7 +512,7 @@
     btnAddPlayer.addEventListener('click', addPlayer);
     btnUndo.addEventListener('click', undo);
     btnReset.addEventListener('click', resetScores);
-    btnSort.addEventListener('click', sortPlayers);
+    btnSort.addEventListener('click', toggleSort);
     btnSound.addEventListener('click', toggleSound);
 
     // Player list - tap on row to edit
@@ -461,7 +525,7 @@
 
       const row = e.target.closest('.player-row');
       if (row) {
-        openEditModal(row.dataset.id);
+        openEditModal(row.dataset.id, false);
       }
     });
 
@@ -471,7 +535,7 @@
 
     document.addEventListener('mouseup', handleScoreButtonUp);
     document.addEventListener('touchend', handleScoreButtonUp);
-    document.addEventListener('touchcancel', stopLongPress);
+    document.addEventListener('touchcancel', handleScoreButtonCancel);
 
     // Edit modal
     btnDeletePlayer.addEventListener('click', () => {
@@ -506,30 +570,42 @@
   }
 
   let activeButtonId = null;
+  let activeButtonDelta = null;
 
   function handleScoreButtonDown(e) {
     const btn = e.target.closest('.score-btn');
     if (!btn) return;
 
+    e.preventDefault(); // Prevent click event from also firing
     activeButtonId = btn.dataset.id;
-    const delta = parseInt(btn.dataset.delta, 10);
-    startLongPress(activeButtonId, delta);
+    activeButtonDelta = parseInt(btn.dataset.delta, 10);
+    startLongPress(activeButtonId, activeButtonDelta);
   }
 
   function handleScoreButtonUp(e) {
+    const savedWasLongPress = wasLongPress;
+    const savedId = activeButtonId;
+    const savedDelta = activeButtonDelta;
+
     stopLongPress();
 
-    if (!activeButtonId) return;
-
-    const btn = e.target.closest?.('.score-btn');
+    if (!savedId) return;
 
     // Only trigger single increment if we didn't do a long press
-    if (!longPressInterval && btn && btn.dataset.id === activeButtonId) {
-      const delta = parseInt(btn.dataset.delta, 10);
-      changeScore(activeButtonId, delta, false);
+    if (!savedWasLongPress) {
+      changeScore(savedId, savedDelta, false);
     }
 
     activeButtonId = null;
+    activeButtonDelta = null;
+    wasLongPress = false;
+  }
+
+  function handleScoreButtonCancel() {
+    stopLongPress();
+    activeButtonId = null;
+    activeButtonDelta = null;
+    wasLongPress = false;
   }
 
   // Start app

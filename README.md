@@ -1,23 +1,34 @@
 # Scorekeeper
 
-A mobile-friendly web app for tracking board game scores. Inspired by Scorekeeper XL for iOS.
+A mobile-first web app for tracking scores during board games, card games, and party games.
+
+**[Try it live →](https://thomaspryor.github.io/scorekeeper/)**
 
 ## Features
 
 - Add/remove players with customizable colors
-- Tap to add/subtract points with configurable increments
-- Swipe left to delete players, swipe right to edit
+- Tap +/- to adjust scores, hold for rapid increment
+- Swipe left to delete, swipe right to edit
 - Drag to reorder players
-- Sort by score (ascending/descending)
-- Undo support (button or shake device)
-- Sound and haptic feedback
-- Works offline (PWA)
-- Dark theme optimized for mobile
+- Sort by score with one tap
+- Undo support (button or shake your device)
+- Sound effects and haptic feedback
+- Works offline as a PWA
+- No account required - data stays on your device
 
-## Usage
+## Tech
 
-Visit the live app or add to your home screen for the best experience.
+Vanilla HTML/CSS/JavaScript with no dependencies. ~1,200 lines of JS, ~760 lines of CSS.
 
 ## Development
 
-The app is vanilla HTML/CSS/JavaScript with no dependencies. Files are in the `/docs` folder for GitHub Pages hosting.
+```bash
+# Just open index.html in a browser, or serve locally:
+python -m http.server 8000 --directory docs
+```
+
+Files are in `/docs` for GitHub Pages hosting.
+
+## License
+
+MIT

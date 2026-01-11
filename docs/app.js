@@ -44,6 +44,7 @@
   let swipeStartY = null;
   let swipeRow = null;
   let swipeStartTime = null;
+  let swipeDirection = null; // 'left' for delete, 'right' for edit
 
   // Drag reorder tracking
   let draggedPlayer = null;
@@ -562,6 +563,9 @@
 
       return `
         <div class="player-row-wrapper" data-id="${player.id}">
+          <div class="swipe-edit-bg" data-swipe-edit="${player.id}">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+          </div>
           <div class="player-row" data-id="${player.id}" style="background-color: ${player.color}; color: ${getTextColor(player.color)}">
             <div class="drag-handle" data-drag="${player.id}" aria-label="Drag to reorder">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
@@ -580,7 +584,14 @@
           </div>
         </div>
       `;
-    }).join('');
+    }).join('') + `
+      <button class="add-player-btn" id="add-player-below">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+        <span>Add Player</span>
+      </button>
+    `;
   }
 
   function renderPlayerScore(id, score, baseScore, delta) {
@@ -669,11 +680,18 @@
     btnSort.addEventListener('click', toggleSort);
     btnSound.addEventListener('click', toggleSound);
 
-    // Player list - tap on row to edit, or empty state to add
+    // Player list - handle clicks (edit via swipe, not tap)
     playerList.addEventListener('click', (e) => {
       // Handle empty state button
       const emptyBtn = e.target.closest('.empty-state-btn');
       if (emptyBtn) {
+        addPlayer();
+        return;
+      }
+
+      // Handle add player button below list
+      const addBelowBtn = e.target.closest('.add-player-btn');
+      if (addBelowBtn) {
         addPlayer();
         return;
       }
@@ -698,10 +716,7 @@
         return;
       }
 
-      const row = e.target.closest('.player-row');
-      if (row) {
-        openEditModal(row.dataset.id, false);
-      }
+      // Note: Edit is now via right-swipe, not tap
     });
 
     // Score buttons - handle both mouse and touch
@@ -796,7 +811,7 @@
     wasLongPress = false;
   }
 
-  // Swipe to delete
+  // Swipe to delete (left) or edit (right)
   function handleSwipeStart(e) {
     const row = e.target.closest('.player-row');
     if (!row || e.target.closest('.score-btn') || e.target.closest('.drag-handle')) return;
@@ -806,10 +821,11 @@
     swipeStartY = touch.clientY;
     swipeRow = row.closest('.player-row-wrapper');
     swipeStartTime = Date.now();
+    swipeDirection = null;
   }
 
   function handleSwipeMove(e) {
-    if (!swipeRow || !swipeStartX) return;
+    if (!swipeRow || swipeStartX === null) return;
 
     const touch = e.touches ? e.touches[0] : e;
     const deltaX = touch.clientX - swipeStartX;
@@ -817,26 +833,33 @@
 
     // If more vertical than horizontal, cancel swipe
     if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 10) {
+      snapBackRow();
       resetSwipe();
       return;
     }
 
-    // Only allow left swipe
-    if (deltaX > 0) {
-      resetSwipe();
-      return;
+    // Determine swipe direction once we have enough movement
+    if (swipeDirection === null && Math.abs(deltaX) > 10) {
+      swipeDirection = deltaX > 0 ? 'right' : 'left';
     }
 
     const playerRow = swipeRow.querySelector('.player-row');
     if (playerRow) {
-      const swipeAmount = Math.max(deltaX, -120);
-      playerRow.style.transform = `translateX(${swipeAmount}px)`;
+      if (swipeDirection === 'left') {
+        // Left swipe for delete - limit to -120px
+        const swipeAmount = Math.max(deltaX, -120);
+        playerRow.style.transform = `translateX(${swipeAmount}px)`;
+      } else if (swipeDirection === 'right') {
+        // Right swipe for edit - limit to 120px
+        const swipeAmount = Math.min(deltaX, 120);
+        playerRow.style.transform = `translateX(${swipeAmount}px)`;
+      }
       playerRow.style.transition = 'none';
     }
   }
 
   function handleSwipeEnd(e) {
-    if (!swipeRow || !swipeStartX) return;
+    if (!swipeRow || swipeStartX === null) return;
 
     const playerRow = swipeRow.querySelector('.player-row');
     if (!playerRow) {
@@ -847,10 +870,10 @@
     const touch = e.changedTouches ? e.changedTouches[0] : e;
     const deltaX = touch.clientX - swipeStartX;
     const velocity = Math.abs(deltaX) / (Date.now() - swipeStartTime);
+    const playerId = swipeRow.dataset.id;
 
-    // If swiped far enough or fast enough, delete
-    if (deltaX < -80 || (deltaX < -40 && velocity > 0.5)) {
-      const playerId = swipeRow.dataset.id;
+    // Left swipe - delete
+    if (swipeDirection === 'left' && (deltaX < -80 || (deltaX < -40 && velocity > 0.5))) {
       playerRow.style.transition = 'transform 0.2s ease-out';
       playerRow.style.transform = 'translateX(-100%)';
       haptic('warning');
@@ -869,7 +892,16 @@
           playerRow.style.transform = 'translateX(0)';
         }
       }, 200);
-    } else {
+    }
+    // Right swipe - edit
+    else if (swipeDirection === 'right' && (deltaX > 80 || (deltaX > 40 && velocity > 0.5))) {
+      playerRow.style.transition = 'transform 0.2s ease-out';
+      playerRow.style.transform = 'translateX(0)';
+      haptic('medium');
+      openEditModal(playerId, false);
+    }
+    // Not enough to trigger action - snap back
+    else {
       playerRow.style.transition = 'transform 0.2s ease-out';
       playerRow.style.transform = 'translateX(0)';
     }
@@ -877,11 +909,22 @@
     resetSwipe();
   }
 
+  function snapBackRow() {
+    if (swipeRow) {
+      const playerRow = swipeRow.querySelector('.player-row');
+      if (playerRow) {
+        playerRow.style.transition = 'transform 0.2s ease-out';
+        playerRow.style.transform = 'translateX(0)';
+      }
+    }
+  }
+
   function resetSwipe() {
     swipeStartX = null;
     swipeStartY = null;
     swipeRow = null;
     swipeStartTime = null;
+    swipeDirection = null;
   }
 
   // Drag to reorder

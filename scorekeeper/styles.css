@@ -115,7 +115,26 @@ html, body {
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
-/* Swipe Delete Background */
+/* Swipe Edit Background (right swipe) */
+.swipe-edit-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 120px;
+  background: #0074D9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.swipe-edit-bg svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* Swipe Delete Background (left swipe) */
 .swipe-delete-bg {
   position: absolute;
   top: 0;
@@ -228,6 +247,8 @@ html, body {
   align-items: center;
   justify-content: center;
   transition: background 0.1s, transform 0.1s;
+  line-height: 1;
+  padding-bottom: 2px; /* Visual adjustment for +/- glyphs */
 }
 
 .score-btn:hover {
@@ -423,6 +444,41 @@ html, body {
   letter-spacing: 0.05em;
 }
 
+/* Add Player Button (below player list) */
+.add-player-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 20px;
+  margin-top: 8px;
+  background: #333;
+  border: 2px dashed #555;
+  border-radius: 12px;
+  color: #aaa;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.add-player-btn:hover {
+  background: #444;
+  border-color: #666;
+  color: #fff;
+}
+
+.add-player-btn:active {
+  transform: scale(0.98);
+}
+
+.add-player-btn svg {
+  width: 28px;
+  height: 28px;
+  opacity: 0.7;
+}
+
 /* Sound button state */
 .toolbar-btn .sound-off {
   display: none;
@@ -443,11 +499,13 @@ html, body {
   }
 
   .toolbar-top {
+    padding-top: max(4px, env(safe-area-inset-top));
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
   }
 
   .toolbar-bottom {
+    padding-bottom: max(4px, env(safe-area-inset-bottom));
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
   }
@@ -477,8 +535,16 @@ html, body {
   }
 
   .player-list {
+    flex: 1;
+    min-height: 0; /* Important for flex scroll */
+    overflow-y: auto;
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+  }
+
+  .add-player-btn {
+    padding: 10px 16px;
+    margin: 4px 0;
   }
 }
 
@@ -489,16 +555,24 @@ html, body {
   }
 
   .toolbar-btn {
-    height: 36px;
-    min-width: 40px;
+    height: 32px;
+    min-width: 36px;
+    padding: 0 8px;
+    font-size: 12px;
   }
 
-  .sort-label {
+  .toolbar-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sort-label,
+  .sound-label {
     display: none;
   }
 
   .player-row {
-    min-height: 44px;
+    min-height: 40px;
     padding: 4px 12px;
   }
 
@@ -507,13 +581,23 @@ html, body {
   }
 
   .player-score {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
   }
 
   .score-btn {
-    width: 38px;
-    height: 38px;
-    font-size: 1.4rem;
+    width: 36px;
+    height: 36px;
+    font-size: 1.3rem;
+  }
+
+  .add-player-btn {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  .add-player-btn svg {
+    width: 20px;
+    height: 20px;
   }
 }
 

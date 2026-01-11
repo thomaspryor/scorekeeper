@@ -54,6 +54,11 @@
   // PWA install prompt
   let deferredInstallPrompt = null;
 
+  // Toast container
+  const toastContainer = document.getElementById('toast-container');
+  let currentToast = null;
+  let toastTimeout = null;
+
   // DOM Elements
   const playerList = document.getElementById('player-list');
   const editModal = document.getElementById('edit-modal');
@@ -183,15 +188,10 @@
     openEditModal(player.id, true); // true = new player, focus input
   }
 
-  // Remove player
-  function removePlayer(id) {
+  // Remove player (instant delete with undo toast)
+  function removePlayer(id, skipToast = false) {
     const player = state.players.find(p => p.id === id);
     if (!player) return;
-
-    // Confirm deletion
-    if (!confirm(`Delete ${player.name || 'this player'}?`)) {
-      return;
-    }
 
     pushUndo();
     state.players = state.players.filter(p => p.id !== id);
@@ -200,6 +200,18 @@
     saveState();
     closeEditModal();
     render();
+    haptic('warning');
+
+    if (!skipToast) {
+      showToast(`Deleted ${player.name || 'player'}`, {
+        showUndo: true,
+        duration: 4000,
+        onUndo: () => {
+          undo();
+          showToast('Restored');
+        }
+      });
+    }
   }
 
   // Update player
@@ -288,14 +300,10 @@
     playerDeltas = {};
   }
 
-  // Reset all scores
+  // Reset all scores (instant with undo toast)
   function resetScores() {
     if (state.players.length === 0) return;
     if (state.players.every(p => p.score === 0)) return;
-
-    if (!confirm('Reset all scores to 0?')) {
-      return;
-    }
 
     pushUndo();
     state.players.forEach(p => {
@@ -306,16 +314,22 @@
     saveState();
     render();
     haptic('success');
+
+    showToast('Scores reset to 0', {
+      showUndo: true,
+      duration: 4000,
+      onUndo: () => {
+        undo();
+        showToast('Scores restored');
+      }
+    });
   }
 
-  // Start new game - clears everything
+  // Start new game - clears everything (instant with undo toast)
   function newGame() {
     if (state.players.length === 0) return;
 
-    if (!confirm('Start a new game? This will remove all players.')) {
-      return;
-    }
-
+    const playerCount = state.players.length;
     pushUndo();
     state.players = [];
     state.originalOrder = [];
@@ -326,6 +340,15 @@
     updateSortButton();
     updateUndoButton();
     haptic('success');
+
+    showToast(`Cleared ${playerCount} player${playerCount !== 1 ? 's' : ''}`, {
+      showUndo: true,
+      duration: 4000,
+      onUndo: () => {
+        undo();
+        showToast('Game restored');
+      }
+    });
   }
 
   // Sort/Unsort players
@@ -479,6 +502,47 @@
 
   function updateSoundButton() {
     btnSound.classList.toggle('sound-off', !state.soundEnabled);
+  }
+
+  // Toast notifications
+  function showToast(message, options = {}) {
+    const { showUndo = false, duration = 3000, onUndo = null } = options;
+
+    // Clear existing toast
+    if (currentToast) {
+      currentToast.remove();
+      clearTimeout(toastTimeout);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `
+      <span>${escapeHtml(message)}</span>
+      ${showUndo ? '<button class="toast-undo-btn">Undo</button>' : ''}
+    `;
+
+    if (showUndo && onUndo) {
+      toast.querySelector('.toast-undo-btn').addEventListener('click', () => {
+        onUndo();
+        hideToast(toast);
+      });
+    }
+
+    toastContainer.appendChild(toast);
+    currentToast = toast;
+
+    toastTimeout = setTimeout(() => hideToast(toast), duration);
+
+    return toast;
+  }
+
+  function hideToast(toast) {
+    if (!toast || !toast.parentNode) return;
+    toast.classList.add('hiding');
+    setTimeout(() => {
+      if (toast.parentNode) toast.remove();
+      if (currentToast === toast) currentToast = null;
+    }, 200);
   }
 
   // Edit modal
@@ -820,11 +884,20 @@
   }
 
   // Swipe to delete (left) or edit (right)
+  // iOS edge protection: ignore swipes starting within 25px of screen edges
+  const EDGE_THRESHOLD = 25;
+
   function handleSwipeStart(e) {
     const row = e.target.closest('.player-row');
     if (!row || e.target.closest('.score-btn') || e.target.closest('.drag-handle')) return;
 
     const touch = e.touches ? e.touches[0] : e;
+
+    // Prevent conflict with iOS back/forward swipe gestures
+    if (touch.clientX < EDGE_THRESHOLD || touch.clientX > window.innerWidth - EDGE_THRESHOLD) {
+      return;
+    }
+
     swipeStartX = touch.clientX;
     swipeStartY = touch.clientY;
     swipeRow = row.closest('.player-row-wrapper');
@@ -880,25 +953,31 @@
     const velocity = Math.abs(deltaX) / (Date.now() - swipeStartTime);
     const playerId = swipeRow.dataset.id;
 
-    // Left swipe - delete
+    // Left swipe - delete (instant with undo toast)
     if (swipeDirection === 'left' && (deltaX < -80 || (deltaX < -40 && velocity > 0.5))) {
       playerRow.style.transition = 'transform 0.2s ease-out';
       playerRow.style.transform = 'translateX(-100%)';
-      haptic('warning');
+
+      const player = state.players.find(p => p.id === playerId);
+      const playerName = player ? (player.name || 'player') : 'player';
 
       setTimeout(() => {
-        const player = state.players.find(p => p.id === playerId);
-        if (player && confirm(`Delete ${player.name || 'this player'}?`)) {
-          pushUndo();
-          state.players = state.players.filter(p => p.id !== playerId);
-          state.originalOrder = state.originalOrder.filter(pid => pid !== playerId);
-          delete playerDeltas[playerId];
-          saveState();
-          render();
-        } else {
-          playerRow.style.transition = 'transform 0.2s ease-out';
-          playerRow.style.transform = 'translateX(0)';
-        }
+        pushUndo();
+        state.players = state.players.filter(p => p.id !== playerId);
+        state.originalOrder = state.originalOrder.filter(pid => pid !== playerId);
+        delete playerDeltas[playerId];
+        saveState();
+        render();
+        haptic('warning');
+
+        showToast(`Deleted ${playerName}`, {
+          showUndo: true,
+          duration: 4000,
+          onUndo: () => {
+            undo();
+            showToast('Restored');
+          }
+        });
       }, 200);
     }
     // Right swipe - edit
@@ -1095,6 +1174,67 @@
     document.body.appendChild(modal);
   }
 
+  // Shake to undo
+  let lastShakeTime = 0;
+  let shakeThreshold = 15; // Acceleration threshold
+  let lastX = null, lastY = null, lastZ = null;
+
+  function initShakeDetection() {
+    if (!window.DeviceMotionEvent) return;
+
+    // iOS 13+ requires permission
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+      // Will request on first user interaction
+      document.addEventListener('touchstart', requestMotionPermission, { once: true });
+    } else {
+      window.addEventListener('devicemotion', handleDeviceMotion);
+    }
+  }
+
+  function requestMotionPermission() {
+    DeviceMotionEvent.requestPermission()
+      .then(response => {
+        if (response === 'granted') {
+          window.addEventListener('devicemotion', handleDeviceMotion);
+        }
+      })
+      .catch(console.warn);
+  }
+
+  function handleDeviceMotion(e) {
+    const acc = e.accelerationIncludingGravity;
+    if (!acc) return;
+
+    const { x, y, z } = acc;
+
+    if (lastX !== null) {
+      const deltaX = Math.abs(x - lastX);
+      const deltaY = Math.abs(y - lastY);
+      const deltaZ = Math.abs(z - lastZ);
+      const totalDelta = deltaX + deltaY + deltaZ;
+
+      if (totalDelta > shakeThreshold) {
+        const now = Date.now();
+        if (now - lastShakeTime > 1000) { // Debounce: 1 second between shakes
+          lastShakeTime = now;
+          handleShake();
+        }
+      }
+    }
+
+    lastX = x;
+    lastY = y;
+    lastZ = z;
+  }
+
+  function handleShake() {
+    if (undoStack.length > 0) {
+      haptic('medium');
+      undo();
+      showToast('Shake undo!');
+    }
+  }
+
   // PWA install prompt
   function initPWA() {
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -1141,4 +1281,5 @@
   // Start app
   init();
   initPWA();
+  initShakeDetection();
 })();

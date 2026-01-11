@@ -61,6 +61,7 @@
   const btnAddPlayer = document.getElementById('btn-add-player');
   const btnUndo = document.getElementById('btn-undo');
   const btnReset = document.getElementById('btn-reset');
+  const btnNewGame = document.getElementById('btn-new-game');
   const btnSort = document.getElementById('btn-sort');
   const btnSound = document.getElementById('btn-sound');
   const btnDeletePlayer = document.getElementById('btn-delete-player');
@@ -296,10 +297,34 @@
     }
 
     pushUndo();
-    state.players.forEach(p => p.score = 0);
+    state.players.forEach(p => {
+      p.score = 0;
+      if (p.history) p.history = [];
+    });
     clearAllDeltas();
     saveState();
     render();
+    haptic('success');
+  }
+
+  // Start new game - clears everything
+  function newGame() {
+    if (state.players.length === 0) return;
+
+    if (!confirm('Start a new game? This will remove all players.')) {
+      return;
+    }
+
+    pushUndo();
+    state.players = [];
+    state.originalOrder = [];
+    state.isSorted = false;
+    clearAllDeltas();
+    saveState();
+    render();
+    updateSortButton();
+    updateUndoButton();
+    haptic('success');
   }
 
   // Sort/Unsort players
@@ -640,6 +665,7 @@
     btnAddPlayer.addEventListener('click', addPlayer);
     btnUndo.addEventListener('click', undo);
     btnReset.addEventListener('click', resetScores);
+    btnNewGame.addEventListener('click', newGame);
     btnSort.addEventListener('click', toggleSort);
     btnSound.addEventListener('click', toggleSound);
 

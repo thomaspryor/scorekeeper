@@ -145,7 +145,8 @@ html, body {
   gap: 8px;
   cursor: pointer;
   transition: filter 0.15s;
-  border-bottom: 2px solid rgba(0,0,0,0.15);
+  border-top: 3px solid rgba(255,255,255,0.2);
+  border-bottom: 3px solid rgba(0,0,0,0.3);
   z-index: 1;
 }
 
@@ -260,8 +261,11 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
   z-index: 100;
+  box-sizing: border-box;
 }
 
 .edit-modal[hidden] {
@@ -271,9 +275,10 @@ html, body {
 .edit-modal-content {
   background: #2a2a2a;
   border-radius: 16px;
-  padding: 20px;
+  padding: 16px;
   width: 100%;
   max-width: 360px;
+  box-sizing: border-box;
 }
 
 /* Color Picker - reordered for better distinction */
@@ -319,9 +324,9 @@ html, body {
 }
 
 .edit-btn {
-  width: 56px;
-  min-width: 56px;
-  height: 56px;
+  width: 50px;
+  min-width: 50px;
+  height: 50px;
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -361,11 +366,12 @@ html, body {
 
 .edit-name-input {
   flex: 1;
-  height: 56px;
+  min-width: 0;
+  height: 50px;
   border: none;
   border-radius: 12px;
-  padding: 0 16px;
-  font-size: 1.25rem;
+  padding: 0 12px;
+  font-size: 1.1rem;
   font-weight: 700;
   text-transform: uppercase;
   background: #fff;

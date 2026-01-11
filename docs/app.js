@@ -288,6 +288,29 @@
     saveState();
     render();
     updateSortButton();
+
+    // Play ta-dah sound and animate after render
+    playSortSound();
+    animateSort();
+  }
+
+  // Animate sort with staggered slide-in
+  function animateSort() {
+    // After render, animate each row
+    requestAnimationFrame(() => {
+      const rows = playerList.querySelectorAll('.player-row');
+      rows.forEach((row, i) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(-30px)';
+        row.style.transition = 'none';
+
+        requestAnimationFrame(() => {
+          row.style.transition = `opacity 0.3s ease ${i * 0.05}s, transform 0.3s ease ${i * 0.05}s`;
+          row.style.opacity = '1';
+          row.style.transform = 'translateX(0)';
+        });
+      });
+    });
   }
 
   function updateSortButton() {
@@ -316,6 +339,38 @@
       gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.08);
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.08);
+    } catch (e) {
+      // Sound not supported
+    }
+  }
+
+  // Ta-dah sound for sort
+  function playSortSound() {
+    if (!state.soundEnabled || !audioContext) return;
+
+    try {
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+
+      const now = audioContext.currentTime;
+
+      // Rising arpeggio: C5, E5, G5, C6
+      const notes = [523, 659, 784, 1047];
+      notes.forEach((freq, i) => {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        const startTime = now + i * 0.08;
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.15, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.2);
+        osc.start(startTime);
+        osc.stop(startTime + 0.25);
+      });
     } catch (e) {
       // Sound not supported
     }
@@ -398,12 +453,12 @@
   function render() {
     if (state.players.length === 0) {
       playerList.innerHTML = `
-        <div class="empty-state">
+        <button class="empty-state-btn" id="empty-state-add">
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
           </svg>
-          <p>Tap + to add players</p>
-        </div>
+          <span>Tap to Add Your First Player</span>
+        </button>
       `;
       return;
     }
@@ -515,8 +570,15 @@
     btnSort.addEventListener('click', toggleSort);
     btnSound.addEventListener('click', toggleSound);
 
-    // Player list - tap on row to edit
+    // Player list - tap on row to edit, or empty state to add
     playerList.addEventListener('click', (e) => {
+      // Handle empty state button
+      const emptyBtn = e.target.closest('.empty-state-btn');
+      if (emptyBtn) {
+        addPlayer();
+        return;
+      }
+
       const scoreBtn = e.target.closest('.score-btn');
       if (scoreBtn) {
         e.stopPropagation();
@@ -531,7 +593,7 @@
 
     // Score buttons - handle both mouse and touch
     playerList.addEventListener('mousedown', handleScoreButtonDown);
-    playerList.addEventListener('touchstart', handleScoreButtonDown, { passive: true });
+    playerList.addEventListener('touchstart', handleScoreButtonDown, { passive: false });
 
     document.addEventListener('mouseup', handleScoreButtonUp);
     document.addEventListener('touchend', handleScoreButtonUp);

@@ -26,9 +26,11 @@ A mobile-first web app to replace **Scorekeeper XL** (by Matt Rix), which is no 
 - **Sound effects** - Speaker icon (bottom-right) toggles sounds
 - **Auto-sort option** - Leading player can appear on top
 
-### 4. Data Persistence
-- **Auto-save** - Scores persist in localStorage
-- **Session recovery** - Resume where you left off
+### 4. Data Persistence (No Login Required)
+- **Auto-save** - Every change instantly saved to localStorage
+- **Survives everything** - Browser close, phone lock, app switch, device restart
+- **Session recovery** - Resume exactly where you left off (common during board games)
+- **No account needed** - Works offline, no signup, no cloud sync
 
 ---
 
@@ -177,18 +179,20 @@ scorekeeper/
 ## Implementation Phases
 
 ### Phase 1: Core MVP
-**Goal: Basic functional scorekeeper**
+**Goal: Basic functional scorekeeper with the killer feature (auto-sort)**
 
 1. [ ] Set up HTML structure with semantic markup
 2. [ ] Create CSS with mobile-first responsive design
-3. [ ] Implement player list rendering
-4. [ ] Add +/- buttons with tap handlers
-5. [ ] Implement long-press for fast counting
-6. [ ] Add player (with auto-assigned color)
-7. [ ] Remove player
-8. [ ] Edit player name (inline)
-9. [ ] LocalStorage persistence
-10. [ ] Reset all scores
+3. [ ] **Responsive layout** - Works in both portrait AND landscape
+4. [ ] Implement player list rendering
+5. [ ] Add +/- buttons with tap handlers
+6. [ ] Implement long-press for fast counting
+7. [ ] Add player (with auto-assigned color)
+8. [ ] Remove player
+9. [ ] Edit player name (inline)
+10. [ ] **Persistent localStorage** - Survives browser close, phone lock, app switch
+11. [ ] Reset all scores
+12. [ ] **Sort functionality** - THE killer feature (auto-rearrange leaders)
 
 ### Phase 2: Polish & UX
 **Goal: Match Scorekeeper XL's satisfying UX**
@@ -196,7 +200,6 @@ scorekeeper/
 1. [ ] Score change animations (number pop/scale)
 2. [ ] Sound effects on score change
 3. [ ] Sound toggle button
-4. [ ] Sort functionality (toggle asc/desc)
 5. [ ] Smooth list reordering animations
 6. [ ] Haptic feedback (where supported)
 7. [ ] Color picker for players
@@ -287,7 +290,7 @@ Based on App Store reviews, users requested these enhancements:
 
 ### High Priority (Consider for MVP)
 1. **Custom increment size** - Set points per tap (3s, 7s, 10s for specific games)
-2. **Landscape mode** - Rotate and adjust layout accordingly
+2. ~~**Landscape mode**~~ - ✓ Now in MVP (responsive portrait + landscape)
 3. **Less sensitive buttons** - Prevent accidental taps
 
 ### Medium Priority (Post-MVP)
@@ -301,12 +304,25 @@ Based on App Store reviews, users requested these enhancements:
 9. **Custom color palette** - Beyond the 12 Atari colors
 
 ### Key User Sentiment (From Reviews)
+
+**What users love:**
 > "Simple, unobtrusive, and FAST"
 > "No frills, no fuss, beautifully simple"
-> "The leading team automatically appeared on top"
-> "Used for youth event with 2,000 people - projected on huge screen"
+> "Slick... done with grace and style"
+> "It legitimately DID NOT need updates, that's not a knock against it"
+> "Most used app since my iPhone 3GS"
 
-**Design Philosophy**: Keep it simple. Add features only if they don't complicate the core experience.
+**Killer feature - auto-sorting:**
+> "The leading team automatically appeared on top"
+> "None (paid or free) had the option of automatically rearranging leaders after every round"
+> "This one is what I was looking for" (differentiator from competitors)
+
+**Large event usage:**
+> "Used for youth event with 2,000 people - projected on huge screen"
+> "Youth group Family Game Night... roughly 15 teams"
+> "iPad + Apple TV + ScoreKeeper = Instant Score Board"
+
+**Design Philosophy**: Keep it simple. The app was praised for NOT needing updates - simplicity is the feature. Add enhancements only if they don't complicate the core experience.
 
 ---
 

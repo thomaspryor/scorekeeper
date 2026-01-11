@@ -162,15 +162,12 @@ html, body {
   padding: 8px 12px;
   min-height: 60px;
   gap: 8px;
-  cursor: pointer;
-  transition: filter 0.15s;
+  cursor: default;
+  transition: transform 0.2s ease-out;
   border-top: 3px solid rgba(255,255,255,0.2);
   border-bottom: 3px solid rgba(0,0,0,0.3);
   z-index: 1;
-}
-
-.player-row:active {
-  filter: brightness(0.9);
+  background-color: inherit;
 }
 
 /* Drag Handle */
@@ -203,6 +200,11 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: pointer;
+}
+
+.player-name:active {
+  opacity: 0.7;
 }
 
 /* Score display - shows running total */

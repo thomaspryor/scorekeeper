@@ -716,7 +716,15 @@
         return;
       }
 
-      // Note: Edit is now via right-swipe, not tap
+      // Click on player name to edit (for desktop/mouse users)
+      const playerName = e.target.closest('.player-name');
+      if (playerName) {
+        const row = playerName.closest('.player-row');
+        if (row) {
+          openEditModal(row.dataset.id, false);
+        }
+        return;
+      }
     });
 
     // Score buttons - handle both mouse and touch

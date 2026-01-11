@@ -176,8 +176,7 @@
       id: generateId(),
       name: '',
       score: 0,
-      color: getNextColor(),
-      history: [] // Score change history
+      color: getNextColor()
     };
     state.players.push(player);
     state.originalOrder.push(player.id); // Add to original order
@@ -262,27 +261,7 @@
 
   function clearDelta(id) {
     if (playerDeltas[id]) {
-      const delta = playerDeltas[id].delta;
       clearTimeout(playerDeltas[id].timeout);
-
-      // Record to history if there was a meaningful change
-      if (delta !== 0) {
-        const player = state.players.find(p => p.id === id);
-        if (player) {
-          if (!player.history) player.history = [];
-          player.history.push({
-            delta: delta,
-            score: player.score,
-            time: Date.now()
-          });
-          // Keep last 50 history entries per player
-          if (player.history.length > 50) {
-            player.history.shift();
-          }
-          saveState();
-        }
-      }
-
       delete playerDeltas[id];
       const player = state.players.find(p => p.id === id);
       if (player) {
@@ -308,7 +287,6 @@
     pushUndo();
     state.players.forEach(p => {
       p.score = 0;
-      if (p.history) p.history = [];
     });
     clearAllDeltas();
     saveState();
@@ -623,7 +601,6 @@
         ? `${deltaInfo.baseScore} ${deltaInfo.delta >= 0 ? '+' : '−'} ${Math.abs(deltaInfo.delta)} =`
         : '';
       const displayName = player.name || `Player ${state.players.findIndex(p => p.id === player.id) + 1}`;
-      const historyCount = player.history ? player.history.length : 0;
 
       return `
         <div class="player-row-wrapper" data-id="${player.id}">
@@ -636,7 +613,6 @@
             </div>
             <span class="player-name">${escapeHtml(displayName)}</span>
             <div class="score-display">
-              ${historyCount > 0 ? `<span class="history-badge" data-history="${player.id}">${historyCount}</span>` : ''}
               <span class="score-delta ${showDelta ? 'visible' : ''}" data-delta-id="${player.id}">${deltaText}</span>
               <span class="player-score" data-score-id="${player.id}">${player.score}</span>
             </div>
@@ -760,14 +736,6 @@
         return;
       }
 
-      // Handle history badge click
-      const historyBadge = e.target.closest('.history-badge');
-      if (historyBadge) {
-        e.stopPropagation();
-        showHistory(historyBadge.dataset.history);
-        return;
-      }
-
       const scoreBtn = e.target.closest('.score-btn');
       if (scoreBtn) {
         e.stopPropagation();
@@ -777,16 +745,6 @@
       const dragHandle = e.target.closest('.drag-handle');
       if (dragHandle) {
         e.stopPropagation();
-        return;
-      }
-
-      // Click on player name to edit (for desktop/mouse users)
-      const playerName = e.target.closest('.player-name');
-      if (playerName) {
-        const row = playerName.closest('.player-row');
-        if (row) {
-          openEditModal(row.dataset.id, false);
-        }
         return;
       }
     });
@@ -1141,37 +1099,6 @@
     });
     draggedPlayer = null;
     dragStartY = null;
-  }
-
-  // Show history modal
-  function showHistory(playerId) {
-    const player = state.players.find(p => p.id === playerId);
-    if (!player || !player.history || player.history.length === 0) return;
-
-    const historyHtml = player.history.slice().reverse().map(h => {
-      const time = new Date(h.time);
-      const timeStr = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const sign = h.delta >= 0 ? '+' : '';
-      return `<div class="history-item"><span>${sign}${h.delta}</span><span>→ ${h.score}</span><span class="history-time">${timeStr}</span></div>`;
-    }).join('');
-
-    const modal = document.createElement('div');
-    modal.className = 'history-modal';
-    modal.innerHTML = `
-      <div class="history-modal-content">
-        <h3>${escapeHtml(player.name || 'Player')} History</h3>
-        <div class="history-list">${historyHtml}</div>
-        <button class="history-close-btn">Close</button>
-      </div>
-    `;
-
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal || e.target.classList.contains('history-close-btn')) {
-        modal.remove();
-      }
-    });
-
-    document.body.appendChild(modal);
   }
 
   // Shake to undo

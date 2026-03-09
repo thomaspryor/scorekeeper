@@ -52,9 +52,9 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-width: 50px;
+  flex: 1;
   height: 44px;
-  padding: 0 12px;
+  padding: 0 8px;
   border: none;
   border-radius: 8px;
   background: #333;

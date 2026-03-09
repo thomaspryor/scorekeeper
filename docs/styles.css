@@ -23,6 +23,9 @@ html, body {
   flex-direction: column;
   height: 100%;
   height: 100dvh;
+  max-width: 500px;
+  margin: 0 auto;
+  box-shadow: 0 0 40px rgba(0,0,0,0.5);
 }
 
 /* Toolbars */
@@ -756,4 +759,174 @@ html, body {
     opacity: 0;
     transform: translateY(-10px);
   }
+}
+
+/* Gesture Hints Overlay */
+.gesture-hints-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  gap: 28px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.gesture-hints-overlay h2 {
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.gesture-hint {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #fff;
+  width: 100%;
+  max-width: 320px;
+}
+
+.gesture-hint-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.4rem;
+}
+
+.gesture-hint-text {
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.gesture-hint-text strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 2px;
+}
+
+.gesture-hints-dismiss {
+  margin-top: 12px;
+  background: #fff;
+  color: #000;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.gesture-hints-dismiss:active {
+  transform: scale(0.95);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Increment Picker */
+.increment-picker {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1a1a1a;
+  border-top: 1px solid #333;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 120;
+  animation: slideUp 0.2s ease-out;
+}
+
+.increment-picker-label {
+  color: #888;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.increment-options {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.increment-option {
+  min-width: 52px;
+  height: 44px;
+  border: 2px solid #444;
+  border-radius: 10px;
+  background: #2a2a2a;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  padding: 0 12px;
+}
+
+.increment-option:active {
+  transform: scale(0.95);
+}
+
+.increment-option.selected {
+  border-color: #2ECC40;
+  background: rgba(46, 204, 64, 0.15);
+  color: #2ECC40;
+}
+
+.increment-custom-input {
+  width: 64px;
+  height: 44px;
+  border: 2px solid #444;
+  border-radius: 10px;
+  background: #2a2a2a;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+}
+
+.increment-custom-input:focus {
+  border-color: #0074D9;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Increment indicator on score buttons */
+.score-btn .increment-label {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+}
+
+.score-btn {
+  position: relative;
 }

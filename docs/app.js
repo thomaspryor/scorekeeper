@@ -23,7 +23,8 @@
     players: [],
     soundEnabled: true,
     isSorted: false,
-    originalOrder: [] // Array of player IDs in original (unsorted) order
+    originalOrder: [], // Array of player IDs in original (unsorted) order
+    increment: 1
   };
 
   // Undo stack
@@ -69,6 +70,8 @@
   const btnNewGame = document.getElementById('btn-new-game');
   const btnSort = document.getElementById('btn-sort');
   const btnSound = document.getElementById('btn-sound');
+  const btnIncrement = document.getElementById('btn-increment');
+  const incrementLabel = document.getElementById('increment-label');
   const btnDeletePlayer = document.getElementById('btn-delete-player');
   const btnConfirmEdit = document.getElementById('btn-confirm-edit');
 
@@ -82,6 +85,7 @@
     updateSoundButton();
     updateUndoButton();
     updateSortButton();
+    updateIncrementLabel();
   }
 
   // Audio - Safari requires user gesture to create AudioContext
@@ -184,6 +188,11 @@
     render();
     updateSortButton();
     openEditModal(player.id, true); // true = new player, focus input
+
+    // Show gesture hints after second player added (first time only)
+    if (state.players.length === 2 && !localStorage.getItem('scorekeeper-hints-shown')) {
+      setTimeout(showGestureHints, 500);
+    }
   }
 
   // Remove player (instant delete with undo toast)
@@ -227,6 +236,9 @@
     const player = state.players.find(p => p.id === id);
     if (!player) return;
 
+    // Apply increment multiplier (delta is +1 or -1, multiply by increment)
+    const actualDelta = delta * state.increment;
+
     // Only push undo at start of a change sequence (not during long press)
     if (!isLongPress && !playerDeltas[id]) {
       pushUndo();
@@ -245,8 +257,8 @@
       clearTimeout(playerDeltas[id].timeout);
     }
 
-    playerDeltas[id].delta += delta;
-    player.score += delta;
+    playerDeltas[id].delta += actualDelta;
+    player.score += actualDelta;
     saveState();
 
     renderPlayerScore(id, player.score, playerDeltas[id].baseScore, playerDeltas[id].delta);
@@ -481,6 +493,12 @@
     btnSound.classList.toggle('sound-off', !state.soundEnabled);
   }
 
+  function updateIncrementLabel() {
+    if (incrementLabel) {
+      incrementLabel.textContent = `±${state.increment}`;
+    }
+  }
+
   // Toast notifications
   function showToast(message, options = {}) {
     const { showUndo = false, duration = 3000, onUndo = null } = options;
@@ -615,8 +633,8 @@
               <span class="score-delta ${showDelta ? 'visible' : ''}" data-delta-id="${player.id}">${deltaText}</span>
               <span class="player-score" data-score-id="${player.id}">${player.score}</span>
             </div>
-            <button class="score-btn btn-minus" data-id="${player.id}" data-delta="-1" aria-label="Decrease score">−</button>
-            <button class="score-btn btn-plus" data-id="${player.id}" data-delta="1" aria-label="Increase score">+</button>
+            <button class="score-btn btn-minus" data-id="${player.id}" data-delta="-1" aria-label="Decrease score">−${state.increment > 1 ? `<span class="increment-label">${state.increment}</span>` : ''}</button>
+            <button class="score-btn btn-plus" data-id="${player.id}" data-delta="1" aria-label="Increase score">+${state.increment > 1 ? `<span class="increment-label">${state.increment}</span>` : ''}</button>
           </div>
           <div class="swipe-delete-bg" data-swipe-delete="${player.id}">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
@@ -718,6 +736,7 @@
     btnNewGame.addEventListener('click', newGame);
     btnSort.addEventListener('click', toggleSort);
     btnSound.addEventListener('click', toggleSound);
+    btnIncrement.addEventListener('click', showIncrementPicker);
 
     // Player list - handle clicks (edit via swipe, not tap)
     playerList.addEventListener('click', (e) => {
@@ -1202,6 +1221,124 @@
     });
 
     document.body.appendChild(banner);
+  }
+
+  // Increment picker
+  const INCREMENT_OPTIONS = [1, 2, 5, 10, 25, 50, 100];
+  let incrementPickerEl = null;
+
+  function showIncrementPicker() {
+    if (incrementPickerEl) {
+      closeIncrementPicker();
+      return;
+    }
+
+    incrementPickerEl = document.createElement('div');
+    incrementPickerEl.className = 'increment-picker';
+    incrementPickerEl.innerHTML = `
+      <div class="increment-picker-label">Score Increment</div>
+      <div class="increment-options">
+        ${INCREMENT_OPTIONS.map(n => `
+          <button class="increment-option ${state.increment === n ? 'selected' : ''}" data-increment="${n}">${n}</button>
+        `).join('')}
+      </div>
+    `;
+
+    incrementPickerEl.addEventListener('click', (e) => {
+      const opt = e.target.closest('.increment-option');
+      if (opt) {
+        state.increment = parseInt(opt.dataset.increment, 10);
+        saveState();
+        render();
+        updateIncrementLabel();
+        closeIncrementPicker();
+        haptic('light');
+      }
+    });
+
+    document.getElementById('app').appendChild(incrementPickerEl);
+
+    // Close on outside tap
+    setTimeout(() => {
+      document.addEventListener('click', handleIncrementOutsideClick);
+    }, 0);
+  }
+
+  function handleIncrementOutsideClick(e) {
+    if (incrementPickerEl && !incrementPickerEl.contains(e.target) && !e.target.closest('#btn-increment')) {
+      closeIncrementPicker();
+    }
+  }
+
+  function closeIncrementPicker() {
+    if (incrementPickerEl) {
+      incrementPickerEl.remove();
+      incrementPickerEl = null;
+      document.removeEventListener('click', handleIncrementOutsideClick);
+    }
+  }
+
+  // Gesture hints (first-run onboarding)
+  function showGestureHints() {
+    if (localStorage.getItem('scorekeeper-hints-shown')) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'gesture-hints-overlay';
+    overlay.innerHTML = `
+      <h2>Quick Tips</h2>
+      <div class="gesture-hint">
+        <div class="gesture-hint-icon" style="background:#0074D9">→</div>
+        <div class="gesture-hint-text">
+          <strong>Swipe Right</strong>
+          Edit player name & color
+        </div>
+      </div>
+      <div class="gesture-hint">
+        <div class="gesture-hint-icon" style="background:#dc3545">←</div>
+        <div class="gesture-hint-text">
+          <strong>Swipe Left</strong>
+          Delete a player
+        </div>
+      </div>
+      <div class="gesture-hint">
+        <div class="gesture-hint-icon" style="background:#555">⋮⋮</div>
+        <div class="gesture-hint-text">
+          <strong>Drag Handle</strong>
+          Hold & drag to reorder
+        </div>
+      </div>
+      <div class="gesture-hint">
+        <div class="gesture-hint-icon" style="background:#555">📳</div>
+        <div class="gesture-hint-text">
+          <strong>Shake Phone</strong>
+          Undo last action
+        </div>
+      </div>
+      <div class="gesture-hint">
+        <div class="gesture-hint-icon" style="background:#555">⏱</div>
+        <div class="gesture-hint-text">
+          <strong>Hold +/−</strong>
+          Rapid score change
+        </div>
+      </div>
+      <button class="gesture-hints-dismiss">Got it</button>
+    `;
+
+    overlay.querySelector('.gesture-hints-dismiss').addEventListener('click', () => {
+      overlay.style.animation = 'none';
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity 0.2s';
+      setTimeout(() => overlay.remove(), 200);
+      localStorage.setItem('scorekeeper-hints-shown', 'true');
+    });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.querySelector('.gesture-hints-dismiss').click();
+      }
+    });
+
+    document.body.appendChild(overlay);
   }
 
   // Start app

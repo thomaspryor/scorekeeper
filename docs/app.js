@@ -88,21 +88,36 @@
     updateIncrementLabel();
   }
 
-  // Audio - Safari requires AudioContext creation + resume inside a user gesture.
-  // We ensure the context is ready on every interaction, not just the first.
-  function initAudio() {
-    const ensureContext = () => {
-      if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioContext.state === 'suspended') {
-        audioContext.resume();
-      }
-    };
+  // Audio - iOS Safari requires AudioContext to be created AND produce output
+  // within the same user gesture call stack. We unlock it by playing a silent
+  // buffer on first interaction so subsequent playSound() calls work.
+  let audioUnlocked = false;
 
-    // Resume on every touch/click to handle iOS Safari restrictions
-    document.addEventListener('touchstart', ensureContext, true);
-    document.addEventListener('mousedown', ensureContext, true);
+  function ensureAudio() {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+    // Play a silent buffer to unlock audio on iOS
+    if (!audioUnlocked && audioContext.state === 'running') {
+      const silentBuffer = audioContext.createBuffer(1, 1, 22050);
+      const source = audioContext.createBufferSource();
+      source.buffer = silentBuffer;
+      source.connect(audioContext.destination);
+      source.start(0);
+      audioUnlocked = true;
+    }
+  }
+
+  function initAudio() {
+    // Unlock on every user gesture type
+    const unlock = () => ensureAudio();
+    document.addEventListener('touchstart', unlock, true);
+    document.addEventListener('touchend', unlock, true);
+    document.addEventListener('mousedown', unlock, true);
+    document.addEventListener('click', unlock, true);
   }
 
   // Storage
@@ -647,13 +662,11 @@
 
   // Sound
   function playSound() {
-    if (!state.soundEnabled || !audioContext) return;
+    if (!state.soundEnabled) return;
+    ensureAudio();
+    if (!audioContext || audioContext.state !== 'running') return;
 
     try {
-      if (audioContext.state === 'suspended') {
-        audioContext.resume();
-      }
-
       const oscillator = audioContext.createOscillator();
       const gain = audioContext.createGain();
       oscillator.connect(gain);
@@ -671,13 +684,11 @@
 
   // Ta-dah sound for sort
   function playSortSound() {
-    if (!state.soundEnabled || !audioContext) return;
+    if (!state.soundEnabled) return;
+    ensureAudio();
+    if (!audioContext || audioContext.state !== 'running') return;
 
     try {
-      if (audioContext.state === 'suspended') {
-        audioContext.resume();
-      }
-
       const now = audioContext.currentTime;
 
       // Rising arpeggio: C5, E5, G5, C6
@@ -706,9 +717,7 @@
     saveState();
     updateSoundButton();
     if (state.soundEnabled) {
-      if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      }
+      ensureAudio();
       playSound();
     }
   }

@@ -930,3 +930,247 @@ html, body {
 .score-btn {
   position: relative;
 }
+
+/* Game Dialog (Save/New Game) */
+.game-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.game-dialog {
+  background: #2a2a2a;
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 380px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-dialog h2 {
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.game-dialog-summary {
+  color: #999;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.game-dialog-input {
+  width: 100%;
+  height: 48px;
+  border: 2px solid #444;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  background: #1a1a1a;
+  color: #fff;
+  outline: none;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+}
+
+.game-dialog-input:focus {
+  border-color: #0074D9;
+}
+
+.game-dialog-input::placeholder {
+  color: #666;
+}
+
+.game-dialog-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.game-dialog-btn {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.15s;
+}
+
+.game-dialog-btn:active {
+  transform: scale(0.98);
+}
+
+.game-dialog-btn.save-btn {
+  background: #2ECC40;
+  color: #000;
+}
+
+.game-dialog-btn.discard-btn {
+  background: #444;
+  color: #fff;
+}
+
+.game-dialog-past-link {
+  background: none;
+  border: none;
+  color: #0074D9;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px;
+  text-align: center;
+}
+
+.game-dialog-past-link:hover {
+  text-decoration: underline;
+}
+
+/* Past Games */
+.past-games-dialog {
+  max-height: 85vh;
+}
+
+.past-games-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.past-games-header h2 {
+  margin-bottom: 0;
+}
+
+.past-games-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+.past-games-close:hover {
+  color: #fff;
+}
+
+.past-games-list {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.past-games-empty {
+  color: #666;
+  text-align: center;
+  padding: 32px 16px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.past-game-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid #3a3a3a;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 8px;
+  padding-left: 8px;
+  padding-right: 4px;
+}
+
+.past-game-item:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.past-game-item:last-child {
+  border-bottom: none;
+}
+
+.past-game-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.past-game-name {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.past-game-meta {
+  color: #888;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.past-game-menu-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 8px;
+  letter-spacing: 2px;
+  flex-shrink: 0;
+}
+
+.past-game-menu-btn:hover {
+  color: #fff;
+}
+
+/* Popup Menu */
+.past-game-popup-menu {
+  background: #333;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  z-index: 200;
+  overflow: hidden;
+  min-width: 140px;
+}
+
+.popup-menu-item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.popup-menu-item:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.popup-menu-item.delete {
+  color: #dc3545;
+}

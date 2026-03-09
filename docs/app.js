@@ -316,30 +316,278 @@
     });
   }
 
-  // Start new game - clears everything (instant with undo toast)
-  function newGame() {
+  // Game History
+  function loadGameHistory() {
+    try {
+      const saved = localStorage.getItem('scorekeeper-history');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveGameHistory(history) {
+    try {
+      localStorage.setItem('scorekeeper-history', JSON.stringify(history));
+    } catch (e) {
+      console.warn('Failed to save history:', e);
+    }
+  }
+
+  function saveCurrentGame(name) {
     if (state.players.length === 0) return;
 
-    const playerCount = state.players.length;
+    const game = {
+      id: generateId(),
+      name: name || formatDefaultGameName(),
+      date: Date.now(),
+      players: JSON.parse(JSON.stringify(state.players)),
+      increment: state.increment
+    };
+
+    const history = loadGameHistory();
+    history.unshift(game); // newest first
+    // Keep max 50 games
+    if (history.length > 50) history.pop();
+    saveGameHistory(history);
+    return game;
+  }
+
+  function formatDefaultGameName() {
+    const d = new Date();
+    const month = d.toLocaleString('default', { month: 'short' });
+    const day = d.getDate();
+    return `Game ${month} ${day}`;
+  }
+
+  function loadGame(gameId) {
+    const history = loadGameHistory();
+    const game = history.find(g => g.id === gameId);
+    if (!game) return;
+
     pushUndo();
-    state.players = [];
-    state.originalOrder = [];
+    state.players = JSON.parse(JSON.stringify(game.players));
+    state.originalOrder = state.players.map(p => p.id);
     state.isSorted = false;
+    if (game.increment) state.increment = game.increment;
     clearAllDeltas();
     saveState();
     render();
     updateSortButton();
     updateUndoButton();
+    updateIncrementLabel();
     haptic('success');
+    showToast(`Loaded "${game.name}"`);
+  }
 
-    showToast(`Cleared ${playerCount} player${playerCount !== 1 ? 's' : ''}`, {
-      showUndo: true,
-      duration: 4000,
-      onUndo: () => {
-        undo();
-        showToast('Game restored');
+  function deleteGame(gameId) {
+    const history = loadGameHistory();
+    const game = history.find(g => g.id === gameId);
+    const filtered = history.filter(g => g.id !== gameId);
+    saveGameHistory(filtered);
+    if (game) {
+      showToast(`Deleted "${game.name}"`);
+    }
+  }
+
+  // New Game flow — show save dialog if there are players
+  function newGame() {
+    if (state.players.length === 0) {
+      showPastGames();
+      return;
+    }
+    showNewGameDialog();
+  }
+
+  function showNewGameDialog() {
+    const overlay = document.createElement('div');
+    overlay.className = 'game-dialog-overlay';
+
+    const playerSummary = state.players
+      .sort((a, b) => b.score - a.score)
+      .map(p => `${p.name || 'Player'} ${p.score}`)
+      .join(' · ');
+
+    overlay.innerHTML = `
+      <div class="game-dialog">
+        <h2>Save this game?</h2>
+        <div class="game-dialog-summary">${escapeHtml(playerSummary)}</div>
+        <input type="text" class="game-dialog-input" placeholder="Game name (optional)" maxlength="40" autocomplete="off" autocorrect="off" spellcheck="false">
+        <div class="game-dialog-buttons">
+          <button class="game-dialog-btn save-btn">Save & New Game</button>
+          <button class="game-dialog-btn discard-btn">Don't Save</button>
+        </div>
+        <button class="game-dialog-past-link">View Past Games</button>
+      </div>
+    `;
+
+    const input = overlay.querySelector('.game-dialog-input');
+    const saveBtn = overlay.querySelector('.save-btn');
+    const discardBtn = overlay.querySelector('.discard-btn');
+    const pastLink = overlay.querySelector('.game-dialog-past-link');
+
+    saveBtn.addEventListener('click', () => {
+      const game = saveCurrentGame(input.value.trim());
+      overlay.remove();
+      clearCurrentGame();
+      showToast(`Saved "${game.name}"`);
+    });
+
+    discardBtn.addEventListener('click', () => {
+      overlay.remove();
+      clearCurrentGame();
+    });
+
+    pastLink.addEventListener('click', () => {
+      overlay.remove();
+      showPastGames();
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') saveBtn.click();
+    });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
+
+    document.getElementById('app').appendChild(overlay);
+    setTimeout(() => input.focus(), 100);
+  }
+
+  function clearCurrentGame() {
+    pushUndo();
+    state.players = [];
+    state.originalOrder = [];
+    state.isSorted = false;
+    state.increment = 1;
+    clearAllDeltas();
+    saveState();
+    render();
+    updateSortButton();
+    updateUndoButton();
+    updateIncrementLabel();
+    haptic('success');
+  }
+
+  // Past Games view
+  function showPastGames() {
+    const history = loadGameHistory();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'game-dialog-overlay';
+
+    if (history.length === 0) {
+      overlay.innerHTML = `
+        <div class="game-dialog past-games-dialog">
+          <div class="past-games-header">
+            <h2>Past Games</h2>
+            <button class="past-games-close">✕</button>
+          </div>
+          <div class="past-games-empty">No saved games yet.<br>Games are saved when you start a new one.</div>
+        </div>
+      `;
+    } else {
+      overlay.innerHTML = `
+        <div class="game-dialog past-games-dialog">
+          <div class="past-games-header">
+            <h2>Past Games</h2>
+            <button class="past-games-close">✕</button>
+          </div>
+          <div class="past-games-list">
+            ${history.map(game => {
+              const date = new Date(game.date);
+              const dateStr = date.toLocaleDateString('default', { month: 'short', day: 'numeric' });
+              const players = game.players
+                .sort((a, b) => b.score - a.score)
+                .map(p => `<span style="color:${game.players.length <= 6 ? p.color : 'inherit'}">${escapeHtml(p.name || 'Player')} ${p.score}</span>`)
+                .join(', ');
+              return `
+                <div class="past-game-item" data-game-id="${game.id}">
+                  <div class="past-game-info">
+                    <div class="past-game-name">${escapeHtml(game.name)}</div>
+                    <div class="past-game-meta">${dateStr} · ${players}</div>
+                  </div>
+                  <button class="past-game-menu-btn" data-game-id="${game.id}">···</button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Close button
+    overlay.querySelector('.past-games-close').addEventListener('click', () => overlay.remove());
+
+    // Click outside to close
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
+
+    // Handle game item clicks (load) and menu clicks
+    overlay.addEventListener('click', (e) => {
+      const menuBtn = e.target.closest('.past-game-menu-btn');
+      if (menuBtn) {
+        e.stopPropagation();
+        showGameMenu(menuBtn.dataset.gameId, menuBtn, overlay);
+        return;
+      }
+
+      const item = e.target.closest('.past-game-item');
+      if (item) {
+        const gameId = item.dataset.gameId;
+        overlay.remove();
+        loadGame(gameId);
       }
     });
+
+    document.getElementById('app').appendChild(overlay);
+  }
+
+  function showGameMenu(gameId, anchor, parentOverlay) {
+    // Remove any existing menu
+    const existing = document.querySelector('.past-game-popup-menu');
+    if (existing) { existing.remove(); return; }
+
+    const menu = document.createElement('div');
+    menu.className = 'past-game-popup-menu';
+    menu.innerHTML = `
+      <button class="popup-menu-item" data-action="load">Load Game</button>
+      <button class="popup-menu-item delete" data-action="delete">Delete</button>
+    `;
+
+    menu.addEventListener('click', (e) => {
+      const action = e.target.dataset.action;
+      if (action === 'load') {
+        parentOverlay.remove();
+        loadGame(gameId);
+      } else if (action === 'delete') {
+        deleteGame(gameId);
+        parentOverlay.remove();
+        showPastGames(); // Re-render
+      }
+      menu.remove();
+    });
+
+    // Position near the anchor
+    const rect = anchor.getBoundingClientRect();
+    menu.style.position = 'fixed';
+    menu.style.top = `${rect.bottom + 4}px`;
+    menu.style.right = `${window.innerWidth - rect.right}px`;
+
+    document.getElementById('app').appendChild(menu);
+
+    // Close on outside click
+    setTimeout(() => {
+      const closeMenu = (e) => {
+        if (!menu.contains(e.target)) {
+          menu.remove();
+          document.removeEventListener('click', closeMenu);
+        }
+      };
+      document.addEventListener('click', closeMenu);
+    }, 0);
   }
 
   // Sort/Unsort players

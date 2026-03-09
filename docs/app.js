@@ -88,9 +88,10 @@
     updateIncrementLabel();
   }
 
-  // Audio - Safari requires user gesture to create AudioContext
+  // Audio - Safari requires AudioContext creation + resume inside a user gesture.
+  // We ensure the context is ready on every interaction, not just the first.
   function initAudio() {
-    const createContext = () => {
+    const ensureContext = () => {
       if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
       }
@@ -99,8 +100,9 @@
       }
     };
 
-    document.addEventListener('touchstart', createContext, { once: true });
-    document.addEventListener('click', createContext, { once: true });
+    // Resume on every touch/click to handle iOS Safari restrictions
+    document.addEventListener('touchstart', ensureContext, true);
+    document.addEventListener('mousedown', ensureContext, true);
   }
 
   // Storage
@@ -410,10 +412,10 @@
       gain.connect(audioContext.destination);
       oscillator.frequency.value = 880;
       oscillator.type = 'sine';
-      gain.gain.setValueAtTime(0.1, audioContext.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.12);
       oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.08);
+      oscillator.stop(audioContext.currentTime + 0.12);
     } catch (e) {
       // Sound not supported
     }

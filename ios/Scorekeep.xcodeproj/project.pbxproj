@@ -1,0 +1,401 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		19BA3991B5025A398A7D76DE /* PastGamesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35FA0A687880EB3E3F8CD6C0 /* PastGamesSheet.swift */; };
+		213E878788F17DD616B618D8 /* SavedGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACE690CA8C896E0FF92528D4 /* SavedGame.swift */; };
+		27231BAE6AC0BBFB65FAB1DE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61FCCA3585D74AD1A761BDFC /* ContentView.swift */; };
+		28E260605AA97EF2A877D732 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD712BC2EC136E08237F54E /* ToastView.swift */; };
+		2ED6719ADB04E4930B04ACBE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A771BA8F65AA0D6ABF48EE5 /* Assets.xcassets */; };
+		399161E3F1DC1CC7DABAE796 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C418188BF99620568AB5FC11 /* EmptyStateView.swift */; };
+		4B896E2594ABD03C543BC446 /* EditPlayerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 602191D73EA5EDD3B73935B1 /* EditPlayerSheet.swift */; };
+		4DDA4C2B6B2B1C1F30FE50DE /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102420DD13FEE46B4F1F3994 /* Player.swift */; };
+		755F0CC5A9A3445824E826B2 /* PlayerRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1212077D5594B43A18293533 /* PlayerRowView.swift */; };
+		840F59961C04BCD2001D72EC /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6524EAADE0AE12C70217E85 /* ColorPalette.swift */; };
+		A0DA8F0C71EB22CE7E2D4F0D /* NewGameSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2479F94EFCA181F8C4312 /* NewGameSheet.swift */; };
+		A636ADD28AC4F79982A5C061 /* SoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39D273D90C18F134007F461F /* SoundManager.swift */; };
+		B987A081D1FCE98DAB42718E /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B7172BA935D564CB3A4155E /* HapticManager.swift */; };
+		CDD6A656CE5AF3CA0A7AA04F /* ScorekeepApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF246C7808E4812DF5BCF4EE /* ScorekeepApp.swift */; };
+		D197E173A977BDDF9969C026 /* IncrementPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFD9D4E71D11DC36EDFD71C7 /* IncrementPickerView.swift */; };
+		D25B338D0D23DE1118CE3C6F /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FA221D53CC56C9DB87BD340 /* GameViewModel.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		102420DD13FEE46B4F1F3994 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
+		1212077D5594B43A18293533 /* PlayerRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRowView.swift; sourceTree = "<group>"; };
+		1A771BA8F65AA0D6ABF48EE5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		35FA0A687880EB3E3F8CD6C0 /* PastGamesSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PastGamesSheet.swift; sourceTree = "<group>"; };
+		39D273D90C18F134007F461F /* SoundManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundManager.swift; sourceTree = "<group>"; };
+		3CB2479F94EFCA181F8C4312 /* NewGameSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGameSheet.swift; sourceTree = "<group>"; };
+		602191D73EA5EDD3B73935B1 /* EditPlayerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPlayerSheet.swift; sourceTree = "<group>"; };
+		61FCCA3585D74AD1A761BDFC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		7B7172BA935D564CB3A4155E /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
+		8FA221D53CC56C9DB87BD340 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
+		ACE690CA8C896E0FF92528D4 /* SavedGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedGame.swift; sourceTree = "<group>"; };
+		BFD9D4E71D11DC36EDFD71C7 /* IncrementPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncrementPickerView.swift; sourceTree = "<group>"; };
+		C418188BF99620568AB5FC11 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
+		C6524EAADE0AE12C70217E85 /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
+		CF246C7808E4812DF5BCF4EE /* ScorekeepApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScorekeepApp.swift; sourceTree = "<group>"; };
+		E72EF711303A1ABC4E29DF1D /* Scorekeep.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Scorekeep.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EDD712BC2EC136E08237F54E /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1ACCD096A0A62D1961A3A3DD /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				102420DD13FEE46B4F1F3994 /* Player.swift */,
+				ACE690CA8C896E0FF92528D4 /* SavedGame.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		2BC3D4C4106855937CA6F740 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				C6524EAADE0AE12C70217E85 /* ColorPalette.swift */,
+				7B7172BA935D564CB3A4155E /* HapticManager.swift */,
+				39D273D90C18F134007F461F /* SoundManager.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		3235335D01093BDACD75C997 /* Scorekeep */ = {
+			isa = PBXGroup;
+			children = (
+				1A771BA8F65AA0D6ABF48EE5 /* Assets.xcassets */,
+				CF246C7808E4812DF5BCF4EE /* ScorekeepApp.swift */,
+				1ACCD096A0A62D1961A3A3DD /* Models */,
+				2BC3D4C4106855937CA6F740 /* Utilities */,
+				CFF11486A86DC4E091BB3401 /* ViewModels */,
+				FEEFD540BC62A1A02B05520D /* Views */,
+			);
+			path = Scorekeep;
+			sourceTree = "<group>";
+		};
+		55303C101DF022E4B8A2B0D3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E72EF711303A1ABC4E29DF1D /* Scorekeep.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		924302BBDF39ADF9A27EA4B0 = {
+			isa = PBXGroup;
+			children = (
+				3235335D01093BDACD75C997 /* Scorekeep */,
+				55303C101DF022E4B8A2B0D3 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CFF11486A86DC4E091BB3401 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				8FA221D53CC56C9DB87BD340 /* GameViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		FEEFD540BC62A1A02B05520D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				61FCCA3585D74AD1A761BDFC /* ContentView.swift */,
+				602191D73EA5EDD3B73935B1 /* EditPlayerSheet.swift */,
+				C418188BF99620568AB5FC11 /* EmptyStateView.swift */,
+				BFD9D4E71D11DC36EDFD71C7 /* IncrementPickerView.swift */,
+				3CB2479F94EFCA181F8C4312 /* NewGameSheet.swift */,
+				35FA0A687880EB3E3F8CD6C0 /* PastGamesSheet.swift */,
+				1212077D5594B43A18293533 /* PlayerRowView.swift */,
+				EDD712BC2EC136E08237F54E /* ToastView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1E76AC20E5F9B47AD8B740C9 /* Scorekeep */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 22607EC949AF6F9EF4C24F19 /* Build configuration list for PBXNativeTarget "Scorekeep" */;
+			buildPhases = (
+				C2D6B57377A86419024BCCEC /* Sources */,
+				7225F9FC41FD40221CE33D37 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Scorekeep;
+			packageProductDependencies = (
+			);
+			productName = Scorekeep;
+			productReference = E72EF711303A1ABC4E29DF1D /* Scorekeep.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BE52C5B36E9E90EF39EA2FDB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 080E89D6DCD4BB9FB4D5DB6B /* Build configuration list for PBXProject "Scorekeep" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 924302BBDF39ADF9A27EA4B0;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 55303C101DF022E4B8A2B0D3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1E76AC20E5F9B47AD8B740C9 /* Scorekeep */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7225F9FC41FD40221CE33D37 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2ED6719ADB04E4930B04ACBE /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C2D6B57377A86419024BCCEC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				840F59961C04BCD2001D72EC /* ColorPalette.swift in Sources */,
+				27231BAE6AC0BBFB65FAB1DE /* ContentView.swift in Sources */,
+				4B896E2594ABD03C543BC446 /* EditPlayerSheet.swift in Sources */,
+				399161E3F1DC1CC7DABAE796 /* EmptyStateView.swift in Sources */,
+				D25B338D0D23DE1118CE3C6F /* GameViewModel.swift in Sources */,
+				B987A081D1FCE98DAB42718E /* HapticManager.swift in Sources */,
+				D197E173A977BDDF9969C026 /* IncrementPickerView.swift in Sources */,
+				A0DA8F0C71EB22CE7E2D4F0D /* NewGameSheet.swift in Sources */,
+				19BA3991B5025A398A7D76DE /* PastGamesSheet.swift in Sources */,
+				4DDA4C2B6B2B1C1F30FE50DE /* Player.swift in Sources */,
+				755F0CC5A9A3445824E826B2 /* PlayerRowView.swift in Sources */,
+				213E878788F17DD616B618D8 /* SavedGame.swift in Sources */,
+				CDD6A656CE5AF3CA0A7AA04F /* ScorekeepApp.swift in Sources */,
+				A636ADD28AC4F79982A5C061 /* SoundManager.swift in Sources */,
+				28E260605AA97EF2A877D732 /* ToastView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		57C2979ED75E089C2276F155 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				"INFOPLIST_KEY_UISupportedInterfaceOrientations~ipad" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = co.scorekeep.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		6C24202322B154E65B062146 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Scorekeep;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		7AD770C2ECA83B7613D80A0E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				"INFOPLIST_KEY_UISupportedInterfaceOrientations~ipad" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = co.scorekeep.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FE6717E29553CB581D828A79 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Scorekeep;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		080E89D6DCD4BB9FB4D5DB6B /* Build configuration list for PBXProject "Scorekeep" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C24202322B154E65B062146 /* Debug */,
+				FE6717E29553CB581D828A79 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		22607EC949AF6F9EF4C24F19 /* Build configuration list for PBXNativeTarget "Scorekeep" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7AD770C2ECA83B7613D80A0E /* Debug */,
+				57C2979ED75E089C2276F155 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BE52C5B36E9E90EF39EA2FDB /* Project object */;
+}

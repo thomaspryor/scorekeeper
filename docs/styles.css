@@ -497,70 +497,29 @@ html, body {
 
 /* Landscape mode */
 @media (orientation: landscape) {
+  #app {
+    max-width: 700px;
+  }
+
   .toolbar {
-    padding: 4px 16px;
+    padding: 2px 16px;
   }
 
   .toolbar-top {
-    padding-top: max(4px, env(safe-area-inset-top));
+    padding-top: max(2px, env(safe-area-inset-top));
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
   }
 
   .toolbar-bottom {
-    padding-bottom: max(4px, env(safe-area-inset-bottom));
+    padding-bottom: max(2px, env(safe-area-inset-bottom));
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
   }
 
   .toolbar-btn {
     min-width: 44px;
-    height: 40px;
-  }
-
-  .player-row {
-    min-height: 50px;
-    padding: 6px 16px;
-  }
-
-  .player-name {
-    font-size: 1.2rem;
-  }
-
-  .player-score {
-    font-size: 1.5rem;
-  }
-
-  .score-btn {
-    width: 44px;
-    height: 44px;
-    font-size: 1.6rem;
-  }
-
-  .player-list {
-    flex: 1;
-    min-height: 0; /* Important for flex scroll */
-    overflow-y: auto;
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-  }
-
-  .add-player-btn {
-    padding: 10px 16px;
-    margin: 4px 0;
-  }
-}
-
-/* Small height landscape */
-@media (orientation: landscape) and (max-height: 400px) {
-  .toolbar {
-    padding: 2px 12px;
-  }
-
-  .toolbar-btn {
-    height: 32px;
-    min-width: 36px;
-    padding: 0 8px;
+    height: 34px;
     font-size: 12px;
   }
 
@@ -569,14 +528,69 @@ html, body {
     height: 20px;
   }
 
+  .player-row {
+    min-height: 44px;
+    padding: 4px 16px;
+  }
+
+  .player-name {
+    font-size: 1.1rem;
+  }
+
+  .player-score {
+    font-size: 1.3rem;
+  }
+
+  .score-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.4rem;
+  }
+
+  .player-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .add-player-btn {
+    padding: 6px 16px;
+    margin: 2px 0;
+  }
+}
+
+/* Small height landscape (most phones) */
+@media (orientation: landscape) and (max-height: 500px) {
+  #app {
+    max-width: none;
+  }
+
+  .toolbar {
+    padding: 2px 12px;
+  }
+
+  .toolbar-btn {
+    height: 30px;
+    min-width: 36px;
+    padding: 0 8px;
+    font-size: 11px;
+  }
+
+  .toolbar-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
   .sort-label,
   .sound-label {
     display: none;
   }
 
   .player-row {
-    min-height: 40px;
-    padding: 4px 12px;
+    min-height: 38px;
+    padding: 2px 12px;
   }
 
   .player-name {
@@ -584,23 +598,24 @@ html, body {
   }
 
   .player-score {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
   }
 
   .score-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 1.3rem;
+    width: 34px;
+    height: 34px;
+    font-size: 1.2rem;
   }
 
   .add-player-btn {
-    padding: 8px 12px;
-    font-size: 0.9rem;
+    padding: 4px 12px;
+    margin: 2px 0;
+    font-size: 0.85rem;
   }
 
   .add-player-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
 }
 

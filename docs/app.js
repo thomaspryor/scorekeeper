@@ -72,6 +72,8 @@
   const btnSound = document.getElementById('btn-sound');
   const btnIncrement = document.getElementById('btn-increment');
   const incrementLabel = document.getElementById('increment-label');
+  const trashTalkEl = document.getElementById('trash-talk');
+  const trashTalkText = document.getElementById('trash-talk-text');
   const btnEndGame = document.getElementById('btn-end-game');
   const btnDeletePlayer = document.getElementById('btn-delete-player');
   const btnConfirmEdit = document.getElementById('btn-confirm-edit');
@@ -287,6 +289,7 @@
     renderPlayerScore(id, player.score, playerDeltas[id].baseScore, playerDeltas[id].delta);
     playSound();
     haptic('light');
+    scheduleTrashTalk();
 
     playerDeltas[id].timeout = setTimeout(() => {
       clearDelta(id);
@@ -870,6 +873,203 @@
     }
   }
 
+  // Trash Talk
+  let lastTrashTalk = '';
+  let trashTalkTimeout = null;
+
+  const TRASH_TALK = {
+    // {leader} = 1st place, {last} = last place, {second} = 2nd place, {random} = random player
+    leader: [
+      "{leader} is absolutely cooking right now",
+      "Somebody stop {leader}",
+      "{leader} came to play today",
+      "Must be nice being {leader}",
+      "{leader} woke up and chose violence",
+      "OK {leader}, we get it, you're good",
+      "{leader} is built different apparently",
+      "Everyone else is just playing for second",
+      "{leader} has no chill right now",
+      "The {leader} show, everyone else is a background character",
+      "{leader} making it look easy",
+      "Is {leader} even trying or is everyone else just bad",
+    ],
+    last: [
+      "{last} is down bad",
+      "Thoughts and prayers for {last}",
+      "{last} out here catching strays",
+      "It's not too late {last}... actually it might be",
+      "{last}'s strategy is bold. Unclear, but bold",
+      "We're all rooting for you {last}. Kind of",
+      "{last} providing the comic relief",
+      "At least {last} is having fun... right?",
+      "{last} bringing a participation trophy energy",
+      "Somebody check on {last}",
+      "{last} is just building character at this point",
+      "{last} down there inventing new ways to lose",
+    ],
+    rivalry: [
+      "{leader} vs {second} is getting spicy",
+      "{second} breathing down {leader}'s neck",
+      "The gap between {leader} and {second} is getting personal",
+      "{second} is NOT giving up on {leader}",
+      "This {leader} vs {second} beef is real",
+    ],
+    tied: [
+      "{p1} and {p2} are deadlocked. Someone do something",
+      "Tie game between {p1} and {p2}. The tension is thick",
+      "{p1} and {p2} refuse to let the other win",
+      "{p1} = {p2}. Math checks out, drama doesn't",
+    ],
+    blowout: [
+      "This is getting uncomfortable for everyone except {leader}",
+      "Maybe we should start a new game... for {last}'s sake",
+      "Mercy rule? Anyone?",
+      "{leader} is farming points at this point",
+      "This stopped being competitive a while ago",
+      "There are closer elections than this game",
+    ],
+    comeback: [
+      "{player} is heating up",
+      "Wait... {player} is making moves",
+      "{player} just shifted the vibe",
+      "Don't look now but {player} has entered the chat",
+    ],
+    allTied: [
+      "Everyone's tied. This is either very balanced or very boring",
+      "Dead heat across the board. Someone make a move",
+      "All tied up. The suspense is killing nobody",
+    ],
+    early: [
+      "It's still early... anything can happen",
+      "Game's just getting started. Trash talk loading...",
+      "Warming up the roasts, check back soon",
+    ],
+    zero: [
+      "Somebody score already, this is painful",
+      "A game of zeros. Truly inspiring stuff",
+      "We'll wait...",
+    ],
+  };
+
+  function getTrashTalk() {
+    if (state.players.length < 2) return null;
+
+    const sorted = [...state.players].sort((a, b) => b.score - a.score);
+    const leader = sorted[0];
+    const second = sorted[1];
+    const last = sorted[sorted.length - 1];
+    const allScoresZero = sorted.every(p => p.score === 0);
+    const allTied = sorted.every(p => p.score === sorted[0].score);
+    const maxScore = leader.score;
+    const minScore = last.score;
+    const gap = maxScore - minScore;
+    const leaderSecondGap = leader.score - second.score;
+
+    const name = (p) => p.name || `Player ${state.players.findIndex(pl => pl.id === p.id) + 1}`;
+
+    // All scores zero
+    if (allScoresZero) {
+      return pick(TRASH_TALK.zero, {});
+    }
+
+    // All tied (non-zero)
+    if (allTied) {
+      return pick(TRASH_TALK.allTied, {});
+    }
+
+    // Build weighted pool based on game state
+    const pool = [];
+
+    // Early game (all scores under 5)
+    if (maxScore > 0 && maxScore <= 5) {
+      pool.push(...TRASH_TALK.early.map(t => ({ t, w: 2 })));
+    }
+
+    // Leader lines
+    pool.push(...TRASH_TALK.leader.map(t => ({ t, w: 3 })));
+
+    // Last place lines
+    if (last.id !== leader.id) {
+      pool.push(...TRASH_TALK.last.map(t => ({ t, w: 3 })));
+    }
+
+    // Rivalry (close between 1st and 2nd)
+    if (leaderSecondGap <= 3 && leaderSecondGap >= 0 && maxScore > 0) {
+      pool.push(...TRASH_TALK.rivalry.map(t => ({ t, w: 5 })));
+    }
+
+    // Tied at top
+    if (leader.score === second.score && maxScore > 0) {
+      pool.push(...TRASH_TALK.tied.map(t => ({ t, w: 5 })));
+    }
+
+    // Blowout (leader ahead by 2x second's score or more, and meaningful scores)
+    if (maxScore > 5 && leaderSecondGap > maxScore * 0.5) {
+      pool.push(...TRASH_TALK.blowout.map(t => ({ t, w: 4 })));
+    }
+
+    if (pool.length === 0) {
+      pool.push(...TRASH_TALK.leader.map(t => ({ t, w: 1 })));
+    }
+
+    // Weighted random pick
+    const totalWeight = pool.reduce((sum, item) => sum + item.w, 0);
+    let r = Math.random() * totalWeight;
+    let template = pool[0].t;
+    for (const item of pool) {
+      r -= item.w;
+      if (r <= 0) { template = item.t; break; }
+    }
+
+    return template
+      .replace(/\{leader\}/g, name(leader))
+      .replace(/\{second\}/g, name(second))
+      .replace(/\{last\}/g, name(last))
+      .replace(/\{p1\}/g, name(leader))
+      .replace(/\{p2\}/g, name(second))
+      .replace(/\{random\}/g, name(sorted[Math.floor(Math.random() * sorted.length)]))
+      .replace(/\{player\}/g, name(sorted[Math.floor(Math.random() * sorted.length)]));
+  }
+
+  function pick(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function updateTrashTalk() {
+    if (state.players.length < 2) {
+      trashTalkEl.hidden = true;
+      return;
+    }
+
+    const line = getTrashTalk();
+    if (!line || line === lastTrashTalk) {
+      // Try once more to avoid repeats
+      const retry = getTrashTalk();
+      if (retry && retry !== lastTrashTalk) {
+        lastTrashTalk = retry;
+      } else if (line) {
+        lastTrashTalk = line;
+      } else {
+        trashTalkEl.hidden = true;
+        return;
+      }
+    } else {
+      lastTrashTalk = line;
+    }
+
+    trashTalkEl.hidden = false;
+    // Re-trigger animation
+    trashTalkText.style.animation = 'none';
+    void trashTalkText.offsetWidth;
+    trashTalkText.style.animation = '';
+    trashTalkText.textContent = lastTrashTalk;
+  }
+
+  function scheduleTrashTalk() {
+    if (trashTalkTimeout) clearTimeout(trashTalkTimeout);
+    trashTalkTimeout = setTimeout(updateTrashTalk, 600);
+  }
+
   // Sound
   function playSound() {
     if (!state.soundEnabled) return;
@@ -1118,6 +1318,7 @@
         <span>Add Player</span>
       </button>
     `;
+    updateTrashTalk();
   }
 
   function renderPlayerScore(id, score, baseScore, delta) {

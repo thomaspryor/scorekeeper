@@ -495,6 +495,37 @@ html, body {
   display: block;
 }
 
+/* Trash Talk Bar */
+.trash-talk {
+  background: #1a1a1a;
+  color: #ccc;
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-style: italic;
+  flex-shrink: 0;
+  border-top: 1px solid #2a2a2a;
+  overflow: hidden;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trash-talk[hidden] {
+  display: none;
+}
+
+.trash-talk span {
+  animation: trashTalkIn 0.3s ease-out;
+}
+
+@keyframes trashTalkIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Landscape mode */
 @media (orientation: landscape) {
   #app {
@@ -565,6 +596,12 @@ html, body {
 @media (orientation: landscape) and (max-height: 500px) {
   #app {
     max-width: none;
+  }
+
+  .trash-talk {
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    min-height: 26px;
   }
 
   .toolbar {

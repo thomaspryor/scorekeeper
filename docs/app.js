@@ -8,8 +8,8 @@
     '#FF851B', // Orange
     '#FFDC00', // Yellow
     '#2ECC40', // Green
-    '#01FF70', // Lime
     '#39CCCC', // Cyan
+    '#01FF70', // Lime
     '#0074D9', // Blue
     '#B10DC9', // Purple
     '#F012BE', // Pink/Magenta

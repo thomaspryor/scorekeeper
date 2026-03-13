@@ -341,10 +341,13 @@
   function endGame() {
     if (state.players.length < 2) return;
 
-    // Find winner(s)
-    const maxScore = Math.max(...state.players.map(p => p.score));
-    const sorted = [...state.players].sort((a, b) => b.score - a.score);
-    const winners = sorted.filter(p => p.score === maxScore);
+    // Find winner(s) — lowest score wins if sorted ascending
+    const ascending = state.sortMode === 'asc';
+    const winningScore = ascending
+      ? Math.min(...state.players.map(p => p.score))
+      : Math.max(...state.players.map(p => p.score));
+    const sorted = [...state.players].sort((a, b) => ascending ? a.score - b.score : b.score - a.score);
+    const winners = sorted.filter(p => p.score === winningScore);
 
     const winnerColor = winners[0].color;
     const winnerTextColor = getTextColor(winnerColor);
@@ -377,7 +380,7 @@
         <div class="celebration-trophy">🏆</div>
         <div class="celebration-winner-name">${winnerName}</div>
         <div class="celebration-label">${winners.length > 1 ? 'Tied!' : 'Wins!'}</div>
-        <div class="celebration-score">${maxScore}</div>
+        <div class="celebration-score">${winningScore}</div>
         <div class="celebration-standings">${standingsHtml}</div>
         <div class="celebration-buttons">
           <button class="celebration-btn btn-undo-end">Undo</button>

@@ -1189,3 +1189,221 @@ html, body {
 .popup-menu-item.delete {
   color: #dc3545;
 }
+
+/* Game End Celebration Overlay */
+.celebration-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  animation: fadeIn 0.3s ease-out;
+  overflow: hidden;
+}
+
+.celebration-confetti {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.celebration-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 1;
+  text-align: center;
+  max-width: 340px;
+  width: 100%;
+}
+
+.celebration-trophy {
+  font-size: 4rem;
+  line-height: 1;
+  animation: trophyBounce 0.6s ease-out;
+}
+
+@keyframes trophyBounce {
+  0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+  60% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.celebration-winner-name {
+  font-size: 2.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.1;
+  animation: winnerReveal 0.5s ease-out 0.2s both;
+  word-break: break-word;
+}
+
+@keyframes winnerReveal {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.celebration-label {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+  animation: winnerReveal 0.4s ease-out 0.35s both;
+}
+
+.celebration-score {
+  font-size: 3rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  animation: winnerReveal 0.4s ease-out 0.45s both;
+}
+
+.celebration-standings {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  animation: winnerReveal 0.4s ease-out 0.55s both;
+}
+
+.celebration-standing-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.celebration-standing-row .standing-rank {
+  opacity: 0.6;
+  margin-right: 8px;
+  min-width: 24px;
+}
+
+.celebration-standing-row .standing-name {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.celebration-standing-row .standing-score {
+  font-variant-numeric: tabular-nums;
+  margin-left: 12px;
+}
+
+.celebration-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-top: 16px;
+  animation: winnerReveal 0.4s ease-out 0.65s both;
+}
+
+.celebration-btn {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.15s;
+}
+
+.celebration-btn:active {
+  transform: scale(0.97);
+}
+
+.celebration-btn.btn-undo-end {
+  background: rgba(255, 255, 255, 0.15);
+  color: inherit;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.celebration-btn.btn-rematch {
+  background: rgba(255, 255, 255, 0.25);
+  color: inherit;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.celebration-btn.btn-new-game-end {
+  background: rgba(0, 0, 0, 0.3);
+  color: inherit;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+@media (orientation: landscape) {
+  .celebration-content {
+    gap: 8px;
+  }
+
+  .celebration-trophy {
+    font-size: 2.5rem;
+  }
+
+  .celebration-winner-name {
+    font-size: 1.6rem;
+  }
+
+  .celebration-score {
+    font-size: 2rem;
+  }
+
+  .celebration-standings {
+    margin-top: 4px;
+  }
+
+  .celebration-buttons {
+    flex-direction: row;
+    margin-top: 8px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .celebration-overlay {
+    padding: 12px 24px;
+  }
+
+  .celebration-trophy {
+    font-size: 2rem;
+  }
+
+  .celebration-winner-name {
+    font-size: 1.3rem;
+  }
+
+  .celebration-score {
+    font-size: 1.5rem;
+  }
+
+  .celebration-standing-row {
+    padding: 3px 10px;
+    font-size: 0.8rem;
+  }
+
+  .celebration-btn {
+    height: 38px;
+    font-size: 0.85rem;
+  }
+}

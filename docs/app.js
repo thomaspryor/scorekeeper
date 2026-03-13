@@ -72,6 +72,7 @@
   const btnSound = document.getElementById('btn-sound');
   const btnIncrement = document.getElementById('btn-increment');
   const incrementLabel = document.getElementById('increment-label');
+  const btnEndGame = document.getElementById('btn-end-game');
   const btnDeletePlayer = document.getElementById('btn-delete-player');
   const btnConfirmEdit = document.getElementById('btn-confirm-edit');
 
@@ -334,6 +335,202 @@
         showToast('Scores restored');
       }
     });
+  }
+
+  // End Game — celebration screen
+  function endGame() {
+    if (state.players.length < 2) return;
+
+    // Find winner(s)
+    const maxScore = Math.max(...state.players.map(p => p.score));
+    const sorted = [...state.players].sort((a, b) => b.score - a.score);
+    const winners = sorted.filter(p => p.score === maxScore);
+
+    const winnerColor = winners[0].color;
+    const winnerTextColor = getTextColor(winnerColor);
+    const winnerName = winners.length > 1
+      ? winners.map(p => escapeHtml(p.name || 'Player')).join(' & ')
+      : escapeHtml(winners[0].name || 'Player');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'celebration-overlay';
+    overlay.style.background = winnerColor;
+    overlay.style.color = winnerTextColor;
+
+    // Build standings (excluding winner row at top)
+    const standingsHtml = sorted.map((p, i) => {
+      const name = escapeHtml(p.name || `Player ${state.players.findIndex(pl => pl.id === p.id) + 1}`);
+      const opacity = i === 0 ? 0.15 : 0.08;
+      const bg = winnerTextColor === '#FFFFFF'
+        ? `rgba(255,255,255,${opacity})`
+        : `rgba(0,0,0,${opacity})`;
+      return `<div class="celebration-standing-row" style="background:${bg}">
+        <span class="standing-rank">${i + 1}.</span>
+        <span class="standing-name">${name}</span>
+        <span class="standing-score">${p.score}</span>
+      </div>`;
+    }).join('');
+
+    overlay.innerHTML = `
+      <canvas class="celebration-confetti" id="confetti-canvas"></canvas>
+      <div class="celebration-content">
+        <div class="celebration-trophy">🏆</div>
+        <div class="celebration-winner-name">${winnerName}</div>
+        <div class="celebration-label">${winners.length > 1 ? 'Tied!' : 'Wins!'}</div>
+        <div class="celebration-score">${maxScore}</div>
+        <div class="celebration-standings">${standingsHtml}</div>
+        <div class="celebration-buttons">
+          <button class="celebration-btn btn-undo-end">Undo</button>
+          <button class="celebration-btn btn-rematch">Rematch</button>
+          <button class="celebration-btn btn-new-game-end">New Game</button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('app').appendChild(overlay);
+
+    // Start confetti
+    const canvas = document.getElementById('confetti-canvas');
+    startConfetti(canvas);
+
+    // Play celebration sound
+    playCelebrationSound();
+    haptic('success');
+
+    // Button handlers
+    overlay.querySelector('.btn-undo-end').addEventListener('click', () => {
+      overlay.remove();
+    });
+
+    overlay.querySelector('.btn-rematch').addEventListener('click', () => {
+      overlay.remove();
+      pushUndo();
+      state.players.forEach(p => { p.score = 0; });
+      clearAllDeltas();
+      saveState();
+      render();
+      haptic('success');
+    });
+
+    overlay.querySelector('.btn-new-game-end').addEventListener('click', () => {
+      overlay.remove();
+      newGame();
+    });
+  }
+
+  // Confetti animation
+  function startConfetti(canvas) {
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    const pieces = [];
+    const colors = ['#FF4136', '#FF851B', '#FFDC00', '#2ECC40', '#0074D9', '#F012BE', '#B10DC9', '#01FF70'];
+
+    // Create confetti pieces
+    for (let i = 0; i < 80; i++) {
+      pieces.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height * -1, // Start above screen
+        w: Math.random() * 8 + 4,
+        h: Math.random() * 6 + 3,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vy: Math.random() * 3 + 2,
+        vx: (Math.random() - 0.5) * 2,
+        rotation: Math.random() * 360,
+        rotSpeed: (Math.random() - 0.5) * 10,
+        opacity: 1
+      });
+    }
+
+    let frame = 0;
+    const maxFrames = 180; // ~3 seconds at 60fps
+
+    function animate() {
+      frame++;
+      if (frame > maxFrames) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Fade out in last 30 frames
+      const fadeStart = maxFrames - 30;
+
+      pieces.forEach(p => {
+        p.y += p.vy;
+        p.x += p.vx;
+        p.rotation += p.rotSpeed;
+        p.vy += 0.05; // gravity
+
+        if (frame > fadeStart) {
+          p.opacity = Math.max(0, 1 - (frame - fadeStart) / 30);
+        }
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation * Math.PI / 180);
+        ctx.globalAlpha = p.opacity;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  }
+
+  // Celebration fanfare sound
+  function playCelebrationSound() {
+    if (!state.soundEnabled) return;
+    ensureAudio();
+    if (!audioContext || audioContext.state !== 'running') return;
+
+    try {
+      const now = audioContext.currentTime;
+
+      // Triumphant fanfare: C5, E5, G5 (hold), then C6 (big finish)
+      const notes = [
+        { freq: 523, start: 0, dur: 0.15 },
+        { freq: 659, start: 0.12, dur: 0.15 },
+        { freq: 784, start: 0.24, dur: 0.3 },
+        { freq: 1047, start: 0.5, dur: 0.5 },
+      ];
+
+      notes.forEach(n => {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.frequency.value = n.freq;
+        osc.type = 'triangle';
+        const t = now + n.start;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.2, t + 0.03);
+        gain.gain.setValueAtTime(0.2, t + n.dur * 0.6);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + n.dur);
+        osc.start(t);
+        osc.stop(t + n.dur + 0.05);
+      });
+
+      // Add a shimmer chord on top
+      [1047, 1319, 1568].forEach(freq => {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        const t = now + 0.5;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.08, t + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+        osc.start(t);
+        osc.stop(t + 0.85);
+      });
+    } catch (e) {
+      // Sound not supported
+    }
   }
 
   // Game History
@@ -1001,6 +1198,7 @@
   function bindEvents() {
     btnAddPlayer.addEventListener('click', addPlayer);
     btnUndo.addEventListener('click', undo);
+    btnEndGame.addEventListener('click', endGame);
     btnReset.addEventListener('click', resetScores);
     btnNewGame.addEventListener('click', newGame);
     btnSort.addEventListener('click', toggleSort);

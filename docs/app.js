@@ -22,7 +22,7 @@
   let state = {
     players: [],
     soundEnabled: true,
-    isSorted: false,
+    sortMode: 'none', // 'none', 'desc', 'asc'
     originalOrder: [], // Array of player IDs in original (unsorted) order
     increment: 1
   };
@@ -127,6 +127,11 @@
       if (saved) {
         const parsed = JSON.parse(saved);
         state = { ...state, ...parsed };
+        // Migrate old isSorted boolean to sortMode
+        if (parsed.isSorted !== undefined && !parsed.sortMode) {
+          state.sortMode = parsed.isSorted ? 'desc' : 'none';
+          delete state.isSorted;
+        }
         // If no original order saved, initialize from current player order
         if (!state.originalOrder || state.originalOrder.length === 0) {
           state.originalOrder = state.players.map(p => p.id);
@@ -150,7 +155,7 @@
     undoStack.push({
       players: JSON.stringify(state.players),
       originalOrder: [...state.originalOrder],
-      isSorted: state.isSorted
+      sortMode: state.sortMode
     });
     if (undoStack.length > MAX_UNDO) {
       undoStack.shift();
@@ -163,7 +168,7 @@
     const snapshot = undoStack.pop();
     state.players = JSON.parse(snapshot.players);
     state.originalOrder = snapshot.originalOrder;
-    state.isSorted = snapshot.isSorted;
+    state.sortMode = snapshot.sortMode || 'none';
     saveState();
     clearAllDeltas();
     render();
@@ -200,7 +205,7 @@
     };
     state.players.push(player);
     state.originalOrder.push(player.id); // Add to original order
-    state.isSorted = false; // Adding a player breaks sort
+    state.sortMode = 'none'; // Adding a player breaks sort
     saveState();
     render();
     updateSortButton();
@@ -383,7 +388,7 @@
     pushUndo();
     state.players = JSON.parse(JSON.stringify(game.players));
     state.originalOrder = state.players.map(p => p.id);
-    state.isSorted = false;
+    state.sortMode = 'none';
     if (game.increment) state.increment = game.increment;
     clearAllDeltas();
     saveState();
@@ -474,7 +479,7 @@
     pushUndo();
     state.players = [];
     state.originalOrder = [];
-    state.isSorted = false;
+    state.sortMode = 'none';
     state.increment = 1;
     clearAllDeltas();
     saveState();
@@ -611,17 +616,21 @@
 
     pushUndo();
 
-    if (state.isSorted) {
+    if (state.sortMode === 'none') {
+      // Sort high to low
+      state.players.sort((a, b) => b.score - a.score);
+      state.sortMode = 'desc';
+    } else if (state.sortMode === 'desc') {
+      // Sort low to high
+      state.players.sort((a, b) => a.score - b.score);
+      state.sortMode = 'asc';
+    } else {
       // Unsort - restore original order
       const playerMap = new Map(state.players.map(p => [p.id, p]));
       state.players = state.originalOrder
         .filter(id => playerMap.has(id))
         .map(id => playerMap.get(id));
-      state.isSorted = false;
-    } else {
-      // Sort high to low
-      state.players.sort((a, b) => b.score - a.score);
-      state.isSorted = true;
+      state.sortMode = 'none';
     }
 
     saveState();
@@ -656,7 +665,8 @@
   function updateSortButton() {
     const label = btnSort.querySelector('.sort-label');
     if (label) {
-      label.textContent = state.isSorted ? 'Unsort' : 'Sort';
+      const labels = { none: 'Sort', desc: 'Sort ↑', asc: 'Unsort' };
+      label.textContent = labels[state.sortMode];
     }
   }
 
@@ -1356,7 +1366,7 @@
         newIndex === 0 ? 0 : targetOriginalIndex + 1, 0, orderId
       );
 
-      state.isSorted = false;
+      state.sortMode = 'none';
       saveState();
       haptic('success');
     }

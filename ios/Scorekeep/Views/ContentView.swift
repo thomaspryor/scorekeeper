@@ -77,16 +77,17 @@ struct ContentView: View {
 
     private var topToolbar: some View {
         HStack(spacing: 8) {
+            toolbarButton(label: "Undo", icon: "arrow.uturn.backward") {
+                viewModel.undo()
+            }
+            .disabled(!viewModel.canUndo)
+            .opacity(viewModel.canUndo ? 1.0 : 0.3)
+
             toolbarButton(label: "Player", icon: "person.badge.plus") {
                 let player = viewModel.addPlayer()
                 editingPlayerId = player.id
                 showEditSheet = true
             }
-
-            toolbarButton(label: "Undo", icon: "arrow.uturn.backward") {
-                viewModel.undo()
-            }
-            .disabled(!viewModel.canUndo)
 
             toolbarButton(label: viewModel.isSorted ? "Unsort" : "Sort", icon: "line.3.horizontal.decrease") {
                 withAnimation(.spring(duration: 0.35)) {
@@ -96,6 +97,7 @@ struct ContentView: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
+        .padding(.top, 4)
         .background(Color(.systemGray6))
     }
 
@@ -182,6 +184,7 @@ struct ContentView: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
+        .padding(.bottom, 4)
         .background(Color(.systemGray6))
     }
 

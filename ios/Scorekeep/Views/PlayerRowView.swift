@@ -8,9 +8,6 @@ struct PlayerRowView: View {
     let onEdit: () -> Void
     let onDelete: () -> Void
 
-    // Long-press state
-    @State private var longPressTimer: Timer?
-    @State private var isLongPressing = false
     @State private var scoreBump = false
 
     private var displayName: String {
@@ -22,27 +19,39 @@ struct PlayerRowView: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            // Player name
             Text(displayName)
                 .font(.system(size: 20, weight: .bold))
                 .textCase(.uppercase)
                 .lineLimit(1)
                 .truncationMode(.tail)
 
+            Button {
+                onEdit()
+            } label: {
+                Image(systemName: "pencil")
+                    .font(.system(size: 14, weight: .semibold))
+                    .opacity(0.5)
+                    .frame(width: 30, height: 30)
+                    .contentShape(Rectangle())
+            }
+
             Spacer()
 
-            // Score
             Text("\(player.score)")
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .scaleEffect(scoreBump ? 1.15 : 1.0)
                 .animation(.easeOut(duration: 0.15), value: scoreBump)
 
-            // Minus button
-            scoreButton(label: "−", delta: -1)
+            ScoreButton(label: "−", delta: -1, increment: increment, fgColor: fgColor) { delta in
+                onScoreChange(delta)
+                triggerBump()
+            }
 
-            // Plus button
-            scoreButton(label: "+", delta: 1)
+            ScoreButton(label: "+", delta: 1, increment: increment, fgColor: fgColor) { delta in
+                onScoreChange(delta)
+                triggerBump()
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -62,73 +71,79 @@ struct PlayerRowView: View {
         }
     }
 
-    private func scoreButton(label: String, delta: Int) -> some View {
-        Button {
-            // Single tap handled here
-        } label: {
-            ZStack {
-                Text(label)
-                    .font(.system(size: 28, weight: .bold))
-                if increment > 1 {
-                    Text("\(increment)")
-                        .font(.system(size: 10, weight: .bold))
-                        .opacity(0.6)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                        .padding(4)
-                }
-            }
-            .frame(width: 50, height: 50)
-            .background(fgColor.opacity(0.15))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-        }
-        .buttonStyle(.plain)
-        .simultaneousGesture(
-            LongPressGesture(minimumDuration: 0.3)
-                .onEnded { _ in
-                    startLongPress(delta: delta)
-                }
-        )
-        .onTapGesture {
-            if !isLongPressing {
-                onScoreChange(delta)
-                triggerBump()
-            }
-        }
-        .onChange(of: isLongPressing) { _, pressing in
-            if !pressing {
-                stopLongPress()
-            }
-        }
-    }
-
-    private func startLongPress(delta: Int) {
-        isLongPressing = true
-        var count = 0
-        longPressTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { timer in
-            onScoreChange(delta)
-            triggerBump()
-            count += 1
-            if count > 10 {
-                timer.invalidate()
-                longPressTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
-                    onScoreChange(delta)
-                    triggerBump()
-                }
-            }
-        }
-    }
-
-    private func stopLongPress() {
-        longPressTimer?.invalidate()
-        longPressTimer = nil
-        isLongPressing = false
-    }
-
     private func triggerBump() {
         scoreBump = true
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(150))
             scoreBump = false
         }
+    }
+}
+
+// Separate view to handle tap + long-press without gesture conflicts
+private struct ScoreButton: View {
+    let label: String
+    let delta: Int
+    let increment: Int
+    let fgColor: Color
+    let action: (Int) -> Void
+
+    @State private var timer: Timer?
+    @State private var longPressActive = false
+
+    var body: some View {
+        ZStack {
+            Text(label)
+                .font(.system(size: 28, weight: .bold))
+            if increment > 1 {
+                Text("\(increment)")
+                    .font(.system(size: 10, weight: .bold))
+                    .opacity(0.6)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .padding(4)
+            }
+        }
+        .frame(width: 50, height: 50)
+        .background(fgColor.opacity(0.15))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if !longPressActive {
+                        longPressActive = true
+                        // Fire single tap immediately
+                        action(delta)
+                        // Start long-press timer after delay
+                        timer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { _ in
+                            startRapidFire()
+                        }
+                    }
+                }
+                .onEnded { _ in
+                    stopAll()
+                }
+        )
+    }
+
+    private func startRapidFire() {
+        var count = 0
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { t in
+            action(delta)
+            count += 1
+            if count > 10 {
+                t.invalidate()
+                timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
+                    action(delta)
+                }
+            }
+        }
+    }
+
+    private func stopAll() {
+        timer?.invalidate()
+        timer = nil
+        longPressActive = false
     }
 }

@@ -145,6 +145,7 @@ final class GameViewModel {
 
     func updatePlayer(_ id: String, name: String? = nil, color: String? = nil) {
         guard let idx = players.firstIndex(where: { $0.id == id }) else { return }
+        pushUndo()
         if let name { players[idx].name = name }
         if let color { players[idx].color = color }
         scheduleSave()
@@ -152,9 +153,11 @@ final class GameViewModel {
 
     func changeScore(_ id: String, delta: Int) {
         guard let idx = players.firstIndex(where: { $0.id == id }) else { return }
+        pushUndo()
         players[idx].score += delta * increment
         scheduleSave()
         HapticManager.light()
+        if soundEnabled { SoundManager.shared.playTick() }
     }
 
     func movePlayer(from source: IndexSet, to destination: Int) {
@@ -181,6 +184,15 @@ final class GameViewModel {
         }
         scheduleSave()
         HapticManager.success()
+        if soundEnabled { SoundManager.shared.playSortSound() }
+    }
+
+    // MARK: - Increment
+
+    func setIncrement(_ value: Int) {
+        pushUndo()
+        increment = value
+        scheduleSave()
     }
 
     // MARK: - Reset / New game
@@ -279,9 +291,11 @@ final class GameViewModel {
 
     func showToast(_ message: String, withUndo: Bool = false, undoAction: (() -> Void)? = nil) {
         toastDismissTask?.cancel()
-        toastMessage = message
-        toastShowUndo = withUndo
-        toastUndoAction = undoAction
+        withAnimation(.spring(duration: 0.3)) {
+            toastMessage = message
+            toastShowUndo = withUndo
+            toastUndoAction = undoAction
+        }
         toastDismissTask = Task { @MainActor in
             try? await Task.sleep(for: .seconds(4))
             guard !Task.isCancelled else { return }
@@ -290,9 +304,11 @@ final class GameViewModel {
     }
 
     func dismissToast() {
-        toastMessage = nil
-        toastShowUndo = false
-        toastUndoAction = nil
+        withAnimation(.spring(duration: 0.3)) {
+            toastMessage = nil
+            toastShowUndo = false
+            toastUndoAction = nil
+        }
     }
 
     func performToastUndo() {

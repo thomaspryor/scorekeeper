@@ -18,7 +18,7 @@ struct IncrementPickerView: View {
             HStack(spacing: 8) {
                 ForEach(options, id: \.self) { value in
                     Button {
-                        viewModel.increment = value
+                        viewModel.setIncrement(value)
                         HapticManager.light()
                         isPresented = false
                     } label: {

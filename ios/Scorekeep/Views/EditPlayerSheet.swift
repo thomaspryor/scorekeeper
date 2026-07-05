@@ -7,6 +7,7 @@ struct EditPlayerSheet: View {
 
     @State private var name: String = ""
     @State private var selectedColor: String = "#AAAAAA"
+    @FocusState private var nameFieldFocused: Bool
 
     private var player: Player? {
         viewModel.players.first { $0.id == playerId }
@@ -66,6 +67,7 @@ struct EditPlayerSheet: View {
                         .textInputAutocapitalization(.characters)
                         .submitLabel(.done)
                         .onSubmit { confirmEdit() }
+                        .focused($nameFieldFocused)
 
                     Button {
                         confirmEdit()
@@ -90,6 +92,9 @@ struct EditPlayerSheet: View {
             if let player {
                 name = player.name
                 selectedColor = player.color
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                nameFieldFocused = true
             }
         }
         .presentationDetents([.medium])

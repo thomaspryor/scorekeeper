@@ -74,6 +74,12 @@ struct NewGameSheet: View {
                 PastGamesSheet(isPresented: $showPastGames)
                     .environment(viewModel)
             }
+            .onChange(of: showPastGames) { _, newValue in
+                // If past games sheet was dismissed and a game was loaded, dismiss this sheet too
+                if !newValue && !viewModel.players.isEmpty {
+                    isPresented = false
+                }
+            }
         }
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)

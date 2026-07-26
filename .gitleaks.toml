@@ -1,0 +1,22 @@
+title = "scorekeeper gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known false positives"
+
+# Mirrors .gitignore exactly. gitleaks' --no-git --source . mode (used by both
+# the CI working-tree scan and the local acceptance check) reads whatever is
+# on disk regardless of git tracking, so gitignored-but-present clutter can
+# still get scanned unless it's allowlisted here too. This repo's .gitignore
+# is short (no node_modules/dist/.env — it's a dependency-free static site +
+# an Xcode project), so this list stays short and precise on purpose: only
+# path patterns that exactly match what .gitignore excludes, nothing broader.
+paths = [
+  '''(^|/)ios/Scorekeep\.xcodeproj/xcuserdata/.*''',
+  '''(^|/)ios/Scorekeep\.xcodeproj/project\.xcworkspace/xcuserdata/.*''',
+  '''(^|/)\.idea/.*''',
+  '''(^|/)\.vscode/.*''',
+  '''\.log$''',
+]

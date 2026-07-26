@@ -27,6 +27,10 @@ Vanilla HTML/CSS/JavaScript with no dependencies. ~1,200 lines of JS, ~760 lines
 python -m http.server 8000 --directory docs
 ```
 
+After cloning, run `./scripts/setup-git-hooks.sh` once to enable the
+pre-commit secret scan (this repo has no `npm install` step to wire it in
+automatically — see `scripts/setup-git-hooks.sh` for details).
+
 Files are in `/docs` for GitHub Pages hosting.
 
 ## License

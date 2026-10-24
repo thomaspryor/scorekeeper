@@ -154,7 +154,16 @@
   }
 
   // Undo
+  // An "Undo" toast undoes the step it was shown for. Once another step is
+  // recorded or undone, its button would undo the wrong thing, so close it.
+  function dismissUndoToast() {
+    if (currentToast && currentToast.querySelector('.toast-undo-btn')) {
+      hideToast(currentToast);
+    }
+  }
+
   function pushUndo() {
+    dismissUndoToast();
     undoStack.push({
       players: JSON.stringify(state.players),
       originalOrder: [...state.originalOrder],
@@ -168,6 +177,7 @@
 
   function undo() {
     if (undoStack.length === 0) return;
+    dismissUndoToast();
     const snapshot = undoStack.pop();
     state.players = JSON.parse(snapshot.players);
     state.originalOrder = snapshot.originalOrder;
@@ -1215,18 +1225,21 @@
     const player = state.players.find(p => p.id === playerId);
     if (!player) return;
 
-    editNameInput.value = player.name;
+    // Clear before showing: clearing inside the focus timeout below erased
+    // anything typed or pasted in the first 100ms.
+    const isUnnamed = isNewPlayer || !player.name;
+    editNameInput.value = isUnnamed ? '' : player.name;
+    if (isUnnamed) {
+      editNameInput.placeholder = `Player ${state.players.findIndex(p => p.id === playerId) + 1}`;
+    }
     updateColorPickerSelection(player.color);
     editModal.hidden = false;
 
     // Focus and show keyboard - use longer delay for Safari iOS
     setTimeout(() => {
       editNameInput.focus();
-      // For new players, select all; for existing, put cursor at end
-      if (isNewPlayer || !player.name) {
-        editNameInput.value = ''; // Clear for new player
-        editNameInput.placeholder = `Player ${state.players.findIndex(p => p.id === playerId) + 1}`;
-      } else {
+      // Existing names are selected so typing replaces them
+      if (!isUnnamed) {
         editNameInput.select();
       }
     }, 100);
@@ -1844,6 +1857,10 @@
   }
 
   function handleShake() {
+    // Don't undo behind an open dialog (e.g. removing the player being named)
+    const dialogOpen = !editModal.hidden ||
+      document.querySelector('.celebration-overlay, .game-dialog-overlay');
+    if (dialogOpen) return;
     if (undoStack.length > 0) {
       haptic('medium');
       undo();

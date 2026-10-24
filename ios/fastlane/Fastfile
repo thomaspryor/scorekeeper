@@ -1,0 +1,68 @@
+# Release lanes for Scorekeep. Run by .github/workflows/ios-release.yml on a macOS runner;
+# nobody needs to run these by hand. Auth is an App Store Connect API key whose path
+# comes from ASC_KEY_PATH (written from the ASC_API_KEY_P8 GitHub secret).
+default_platform(:ios)
+
+BUNDLE_ID = "co.scorekeep.app"
+APP_NAME = "Scorekeep"
+
+platform :ios do
+  before_all do
+    app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_filepath: ENV.fetch("ASC_KEY_PATH"),
+      in_house: false
+    )
+  end
+
+  desc "Register the bundle ID and report whether the App Store Connect app record exists"
+  lane :preflight do
+    bundle = Spaceship::ConnectAPI::BundleId.find(BUNDLE_ID)
+    if bundle
+      UI.message("Bundle ID #{BUNDLE_ID} already registered")
+    else
+      Spaceship::ConnectAPI::BundleId.create(name: APP_NAME, platform: "IOS", identifier: BUNDLE_ID)
+      UI.success("Registered bundle ID #{BUNDLE_ID}")
+    end
+
+    app = Spaceship::ConnectAPI::App.find(BUNDLE_ID)
+    unless app
+      UI.user_error!(
+        "No App Store Connect app for #{BUNDLE_ID} yet. Create it once in App Store Connect " \
+        "(My Apps > + > New App, bundle ID #{BUNDLE_ID}); see memory/app-store.md."
+      )
+    end
+    UI.success("App Store Connect app: #{app.name} (#{app.id})")
+  end
+
+  desc "Upload an exported .ipa to TestFlight and wait until Apple finishes processing it"
+  lane :beta do |options|
+    upload_to_testflight(
+      ipa: options.fetch(:ipa),
+      skip_waiting_for_build_processing: false,
+      skip_submission: true,
+      distribute_external: false
+    )
+  end
+
+  desc "Push listing text and screenshots; optionally submit the build for App Review"
+  lane :listing do |options|
+    deliver(
+      app_identifier: BUNDLE_ID,
+      app_version: options.fetch(:version),
+      build_number: options[:build_number],
+      skip_binary_upload: true,
+      skip_metadata: false,
+      skip_screenshots: false,
+      overwrite_screenshots: true,
+      submit_for_review: options[:submit] == true || options[:submit] == "true",
+      automatic_release: true,
+      force: true,
+      run_precheck_before_submit: false,
+      submission_information: {
+        add_id_info_uses_idfa: false
+      }
+    )
+  end
+end

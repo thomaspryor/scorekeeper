@@ -3,6 +3,7 @@ import SwiftUI
 struct PastGamesSheet: View {
     @Environment(GameViewModel.self) private var viewModel
     @Binding var isPresented: Bool
+    var onLoad: (() -> Void)? = nil
     @State private var history: [SavedGame] = []
 
     var body: some View {
@@ -26,6 +27,7 @@ struct PastGamesSheet: View {
                         ForEach(history) { game in
                             Button {
                                 viewModel.loadGame(game.id)
+                                onLoad?()
                                 isPresented = false
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
@@ -34,7 +36,7 @@ struct PastGamesSheet: View {
                                         .foregroundStyle(.primary)
 
                                     HStack(spacing: 0) {
-                                        Text(game.date, format: .dateTime.month(.abbreviated).day())
+                                        Text(game.date, format: dateFormat(for: game.date))
                                             .foregroundStyle(.secondary)
                                         Text(" · ")
                                             .foregroundStyle(.secondary)
@@ -75,7 +77,13 @@ struct PastGamesSheet: View {
     private func playerSummary(_ game: SavedGame) -> String {
         game.players
             .sorted { $0.score > $1.score }
-            .map { "\($0.name.isEmpty ? "Player" : $0.name) \($0.score)" }
+            .map { "\(GameLogic.displayName(for: $0, in: game.players)) \($0.score)" }
             .joined(separator: ", ")
+    }
+
+    /// "Oct 24" this year, "Oct 24, 2025" for older games.
+    private func dateFormat(for date: Date) -> Date.FormatStyle {
+        let sameYear = Calendar.current.isDate(date, equalTo: Date(), toGranularity: .year)
+        return sameYear ? .dateTime.month(.abbreviated).day() : .dateTime.month(.abbreviated).day().year()
     }
 }

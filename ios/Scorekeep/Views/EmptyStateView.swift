@@ -29,5 +29,6 @@ struct EmptyStateView: View {
             .foregroundStyle(.black)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Add your first player")
     }
 }

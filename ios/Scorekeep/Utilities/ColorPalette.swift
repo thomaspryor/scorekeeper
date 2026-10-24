@@ -16,6 +16,17 @@ enum ColorPalette {
         "#FFFFFF", // White
     ]
 
+    private static let names: [String: String] = [
+        "#FF4136": "Red", "#FF851B": "Orange", "#FFDC00": "Yellow", "#2ECC40": "Green",
+        "#01FF70": "Lime", "#39CCCC": "Cyan", "#0074D9": "Blue", "#B10DC9": "Purple",
+        "#F012BE": "Pink", "#AAAAAA": "Gray", "#111111": "Black", "#FFFFFF": "White",
+    ]
+
+    /// Spoken name for a palette color (VoiceOver).
+    static func name(for hex: String) -> String {
+        names[hex.uppercased()] ?? "Color"
+    }
+
     static func color(from hex: String) -> Color {
         let h = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
         guard h.count == 6, let val = UInt64(h, radix: 16) else { return .gray }

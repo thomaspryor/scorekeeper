@@ -1,0 +1,108 @@
+name: iOS CI
+
+# Builds the iOS app, runs unit + UI tests on a simulator, checks the Xcode
+# project matches ios/project.yml, and captures App Store screenshots.
+# macOS minutes are free here because the repository is public.
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'ios/**'
+      - '.github/workflows/ios.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'ios/**'
+      - '.github/workflows/ios.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ios-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+env:
+  XCODEGEN_VERSION: 2.46.0
+
+jobs:
+  test:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Select newest Xcode
+        run: |
+          ls -d /Applications/Xcode*.app
+          XCODE="$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
+      - name: Xcode project matches project.yml
+        run: |
+          curl -sSL "https://github.com/yonaskolb/XcodeGen/releases/download/${XCODEGEN_VERSION}/xcodegen.zip" -o "$RUNNER_TEMP/xcodegen.zip"
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP/xcodegen"
+          "$RUNNER_TEMP/xcodegen/xcodegen/bin/xcodegen" generate --spec ios/project.yml
+          if [ -n "$(git status --porcelain -- ios/Scorekeep.xcodeproj)" ]; then
+            git status --short -- ios/Scorekeep.xcodeproj
+            git diff -- ios/Scorekeep.xcodeproj | head -100
+            echo "::error::ios/Scorekeep.xcodeproj is out of date. Run: xcodegen generate --spec ios/project.yml (XcodeGen ${XCODEGEN_VERSION}) and commit the result."
+            exit 1
+          fi
+
+      - name: Unit and UI tests
+        run: |
+          UDID="$(python3 ios/scripts/find_simulator.py 'iPhone [0-9]+ Pro')"
+          set +e
+          xcodebuild test \
+            -project ios/Scorekeep.xcodeproj \
+            -scheme Scorekeep \
+            -destination "id=$UDID" \
+            -resultBundlePath "$RUNNER_TEMP/Tests.xcresult" \
+            CODE_SIGNING_ALLOWED=NO \
+            > "$RUNNER_TEMP/test.log" 2>&1
+          status=$?
+          set -e
+          # Compiler errors, our own warnings, and every test result
+          grep -E '(error:|warning: .*/ios/Scorekeep|Test Case .*(passed|failed)|Executed [0-9]+ test|\*\* TEST)' "$RUNNER_TEMP/test.log" || true
+          if [ "$status" -ne 0 ]; then
+            echo "::group::Last 150 lines of xcodebuild output"
+            tail -150 "$RUNNER_TEMP/test.log"
+            echo "::endgroup::"
+          fi
+          exit "$status"
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            ${{ runner.temp }}/Tests.xcresult
+            ${{ runner.temp }}/test.log
+          if-no-files-found: ignore
+
+  screenshots:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Select newest Xcode
+        run: |
+          XCODE="$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
+      - name: Capture App Store screenshots
+        run: ios/scripts/screenshots.sh "$RUNNER_TEMP/screenshots"
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-store-screenshots
+          # .frame2.png is kept when the celebration animation check fails
+          path: ${{ runner.temp }}/screenshots/
+          include-hidden-files: true
+          if-no-files-found: error

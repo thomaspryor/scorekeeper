@@ -9,40 +9,77 @@
 /* Begin PBXBuildFile section */
 		19BA3991B5025A398A7D76DE /* PastGamesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35FA0A687880EB3E3F8CD6C0 /* PastGamesSheet.swift */; };
 		213E878788F17DD616B618D8 /* SavedGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACE690CA8C896E0FF92528D4 /* SavedGame.swift */; };
+		231F19ADED7FFC1A5CA9A37C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = EF7706157CA780A33E962059 /* PrivacyInfo.xcprivacy */; };
 		27231BAE6AC0BBFB65FAB1DE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61FCCA3585D74AD1A761BDFC /* ContentView.swift */; };
 		28E260605AA97EF2A877D732 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD712BC2EC136E08237F54E /* ToastView.swift */; };
+		2BCDA4CC1EB4F158A39C72A3 /* CelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95594BADB6241E6AE688AC7B /* CelebrationView.swift */; };
+		2E7F9A7EE72C1BBB0CFC60B4 /* GameViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB26E1C237A70D2D2B8A8B82 /* GameViewModelTests.swift */; };
 		2ED6719ADB04E4930B04ACBE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A771BA8F65AA0D6ABF48EE5 /* Assets.xcassets */; };
 		399161E3F1DC1CC7DABAE796 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C418188BF99620568AB5FC11 /* EmptyStateView.swift */; };
+		446C072C7452B2B04207BAE0 /* GameLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 976F244573E007869E589E06 /* GameLogic.swift */; };
 		4B896E2594ABD03C543BC446 /* EditPlayerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 602191D73EA5EDD3B73935B1 /* EditPlayerSheet.swift */; };
 		4DDA4C2B6B2B1C1F30FE50DE /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102420DD13FEE46B4F1F3994 /* Player.swift */; };
+		70A1D9E5BD1E60CE78C4ADEE /* DemoData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6CDC59760892831D057AF6 /* DemoData.swift */; };
 		755F0CC5A9A3445824E826B2 /* PlayerRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1212077D5594B43A18293533 /* PlayerRowView.swift */; };
+		80377B2AF7CA4A802B008A5A /* ScorekeepUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 239709F71B22C7F056A120AB /* ScorekeepUITests.swift */; };
 		840F59961C04BCD2001D72EC /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6524EAADE0AE12C70217E85 /* ColorPalette.swift */; };
+		96659A3C083C4903F5AAB042 /* SortMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = C77A5F5F4A451EEB1D55B4B3 /* SortMode.swift */; };
 		A0DA8F0C71EB22CE7E2D4F0D /* NewGameSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2479F94EFCA181F8C4312 /* NewGameSheet.swift */; };
 		A636ADD28AC4F79982A5C061 /* SoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39D273D90C18F134007F461F /* SoundManager.swift */; };
 		B987A081D1FCE98DAB42718E /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B7172BA935D564CB3A4155E /* HapticManager.swift */; };
+		C5FFBA11E199611E7497F48C /* GameLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0645ED047419537116389D /* GameLogicTests.swift */; };
 		CDD6A656CE5AF3CA0A7AA04F /* ScorekeepApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF246C7808E4812DF5BCF4EE /* ScorekeepApp.swift */; };
 		D197E173A977BDDF9969C026 /* IncrementPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFD9D4E71D11DC36EDFD71C7 /* IncrementPickerView.swift */; };
 		D25B338D0D23DE1118CE3C6F /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FA221D53CC56C9DB87BD340 /* GameViewModel.swift */; };
+		E50D32407DD9D64BFA6F3C1B /* TrashTalk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 226741C2B117564E7A60102A /* TrashTalk.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		49F1EA52E49ECDC3EA22EE98 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BE52C5B36E9E90EF39EA2FDB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1E76AC20E5F9B47AD8B740C9;
+			remoteInfo = Scorekeep;
+		};
+		59ECAEBF13769D4B3BC6AABA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BE52C5B36E9E90EF39EA2FDB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1E76AC20E5F9B47AD8B740C9;
+			remoteInfo = Scorekeep;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		102420DD13FEE46B4F1F3994 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 		1212077D5594B43A18293533 /* PlayerRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRowView.swift; sourceTree = "<group>"; };
 		1A771BA8F65AA0D6ABF48EE5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1E6CDC59760892831D057AF6 /* DemoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoData.swift; sourceTree = "<group>"; };
+		226741C2B117564E7A60102A /* TrashTalk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashTalk.swift; sourceTree = "<group>"; };
+		239709F71B22C7F056A120AB /* ScorekeepUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScorekeepUITests.swift; sourceTree = "<group>"; };
 		35FA0A687880EB3E3F8CD6C0 /* PastGamesSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PastGamesSheet.swift; sourceTree = "<group>"; };
 		39D273D90C18F134007F461F /* SoundManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundManager.swift; sourceTree = "<group>"; };
 		3CB2479F94EFCA181F8C4312 /* NewGameSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGameSheet.swift; sourceTree = "<group>"; };
+		4C0645ED047419537116389D /* GameLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogicTests.swift; sourceTree = "<group>"; };
 		602191D73EA5EDD3B73935B1 /* EditPlayerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPlayerSheet.swift; sourceTree = "<group>"; };
 		61FCCA3585D74AD1A761BDFC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		7B7172BA935D564CB3A4155E /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
+		85A4E2B4D375CAFDD2114FA7 /* ScorekeepTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ScorekeepTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FA221D53CC56C9DB87BD340 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
+		95594BADB6241E6AE688AC7B /* CelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CelebrationView.swift; sourceTree = "<group>"; };
+		976F244573E007869E589E06 /* GameLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogic.swift; sourceTree = "<group>"; };
+		990E0EC88A3CA30F724BB57E /* ScorekeepUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ScorekeepUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		ACE690CA8C896E0FF92528D4 /* SavedGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedGame.swift; sourceTree = "<group>"; };
+		BB26E1C237A70D2D2B8A8B82 /* GameViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModelTests.swift; sourceTree = "<group>"; };
 		BFD9D4E71D11DC36EDFD71C7 /* IncrementPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncrementPickerView.swift; sourceTree = "<group>"; };
 		C418188BF99620568AB5FC11 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		C6524EAADE0AE12C70217E85 /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
+		C77A5F5F4A451EEB1D55B4B3 /* SortMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SortMode.swift; sourceTree = "<group>"; };
 		CF246C7808E4812DF5BCF4EE /* ScorekeepApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScorekeepApp.swift; sourceTree = "<group>"; };
 		E72EF711303A1ABC4E29DF1D /* Scorekeep.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Scorekeep.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDD712BC2EC136E08237F54E /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
+		EF7706157CA780A33E962059 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -51,6 +88,7 @@
 			children = (
 				102420DD13FEE46B4F1F3994 /* Player.swift */,
 				ACE690CA8C896E0FF92528D4 /* SavedGame.swift */,
+				C77A5F5F4A451EEB1D55B4B3 /* SortMode.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -59,17 +97,28 @@
 			isa = PBXGroup;
 			children = (
 				C6524EAADE0AE12C70217E85 /* ColorPalette.swift */,
+				1E6CDC59760892831D057AF6 /* DemoData.swift */,
 				7B7172BA935D564CB3A4155E /* HapticManager.swift */,
 				39D273D90C18F134007F461F /* SoundManager.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
 		};
+		316FDBE4BAA97267CDF87DED /* ScorekeepUITests */ = {
+			isa = PBXGroup;
+			children = (
+				239709F71B22C7F056A120AB /* ScorekeepUITests.swift */,
+			);
+			path = ScorekeepUITests;
+			sourceTree = "<group>";
+		};
 		3235335D01093BDACD75C997 /* Scorekeep */ = {
 			isa = PBXGroup;
 			children = (
 				1A771BA8F65AA0D6ABF48EE5 /* Assets.xcassets */,
+				EF7706157CA780A33E962059 /* PrivacyInfo.xcprivacy */,
 				CF246C7808E4812DF5BCF4EE /* ScorekeepApp.swift */,
+				FB769E8182BADC54E8FF2FDF /* Logic */,
 				1ACCD096A0A62D1961A3A3DD /* Models */,
 				2BC3D4C4106855937CA6F740 /* Utilities */,
 				CFF11486A86DC4E091BB3401 /* ViewModels */,
@@ -82,14 +131,27 @@
 			isa = PBXGroup;
 			children = (
 				E72EF711303A1ABC4E29DF1D /* Scorekeep.app */,
+				85A4E2B4D375CAFDD2114FA7 /* ScorekeepTests.xctest */,
+				990E0EC88A3CA30F724BB57E /* ScorekeepUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		63AE02502A97F14F2B51DC60 /* ScorekeepTests */ = {
+			isa = PBXGroup;
+			children = (
+				4C0645ED047419537116389D /* GameLogicTests.swift */,
+				BB26E1C237A70D2D2B8A8B82 /* GameViewModelTests.swift */,
+			);
+			path = ScorekeepTests;
 			sourceTree = "<group>";
 		};
 		924302BBDF39ADF9A27EA4B0 = {
 			isa = PBXGroup;
 			children = (
 				3235335D01093BDACD75C997 /* Scorekeep */,
+				63AE02502A97F14F2B51DC60 /* ScorekeepTests */,
+				316FDBE4BAA97267CDF87DED /* ScorekeepUITests */,
 				55303C101DF022E4B8A2B0D3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -102,9 +164,19 @@
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
+		FB769E8182BADC54E8FF2FDF /* Logic */ = {
+			isa = PBXGroup;
+			children = (
+				976F244573E007869E589E06 /* GameLogic.swift */,
+				226741C2B117564E7A60102A /* TrashTalk.swift */,
+			);
+			path = Logic;
+			sourceTree = "<group>";
+		};
 		FEEFD540BC62A1A02B05520D /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				95594BADB6241E6AE688AC7B /* CelebrationView.swift */,
 				61FCCA3585D74AD1A761BDFC /* ContentView.swift */,
 				602191D73EA5EDD3B73935B1 /* EditPlayerSheet.swift */,
 				C418188BF99620568AB5FC11 /* EmptyStateView.swift */,
@@ -138,6 +210,42 @@
 			productReference = E72EF711303A1ABC4E29DF1D /* Scorekeep.app */;
 			productType = "com.apple.product-type.application";
 		};
+		84C68492F2F72EA079E397A7 /* ScorekeepTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA7A5D1FC9210138446BE6C4 /* Build configuration list for PBXNativeTarget "ScorekeepTests" */;
+			buildPhases = (
+				79778F3034CD53E6D4F9A9BC /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6BACDABEE60F12A0F22BCB54 /* PBXTargetDependency */,
+			);
+			name = ScorekeepTests;
+			packageProductDependencies = (
+			);
+			productName = ScorekeepTests;
+			productReference = 85A4E2B4D375CAFDD2114FA7 /* ScorekeepTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		CE558D15C42B04FD73D1433A /* ScorekeepUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 77653CBA5B6B0FC837CC8D19 /* Build configuration list for PBXNativeTarget "ScorekeepUITests" */;
+			buildPhases = (
+				3B38633AB65EFD5EEA6ECBD6 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				54F057BE30F20CD8516289EC /* PBXTargetDependency */,
+			);
+			name = ScorekeepUITests;
+			packageProductDependencies = (
+			);
+			productName = ScorekeepUITests;
+			productReference = 990E0EC88A3CA30F724BB57E /* ScorekeepUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -150,6 +258,15 @@
 					1E76AC20E5F9B47AD8B740C9 = {
 						DevelopmentTeam = 2837Q6TK6Y;
 						ProvisioningStyle = Automatic;
+					};
+					84C68492F2F72EA079E397A7 = {
+						DevelopmentTeam = 2837Q6TK6Y;
+						ProvisioningStyle = Automatic;
+					};
+					CE558D15C42B04FD73D1433A = {
+						DevelopmentTeam = 2837Q6TK6Y;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 1E76AC20E5F9B47AD8B740C9;
 					};
 				};
 			};
@@ -168,6 +285,8 @@
 			projectRoot = "";
 			targets = (
 				1E76AC20E5F9B47AD8B740C9 /* Scorekeep */,
+				84C68492F2F72EA079E397A7 /* ScorekeepTests */,
+				CE558D15C42B04FD73D1433A /* ScorekeepUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -178,20 +297,41 @@
 			buildActionMask = 2147483647;
 			files = (
 				2ED6719ADB04E4930B04ACBE /* Assets.xcassets in Resources */,
+				231F19ADED7FFC1A5CA9A37C /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3B38633AB65EFD5EEA6ECBD6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				80377B2AF7CA4A802B008A5A /* ScorekeepUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		79778F3034CD53E6D4F9A9BC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5FFBA11E199611E7497F48C /* GameLogicTests.swift in Sources */,
+				2E7F9A7EE72C1BBB0CFC60B4 /* GameViewModelTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C2D6B57377A86419024BCCEC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BCDA4CC1EB4F158A39C72A3 /* CelebrationView.swift in Sources */,
 				840F59961C04BCD2001D72EC /* ColorPalette.swift in Sources */,
 				27231BAE6AC0BBFB65FAB1DE /* ContentView.swift in Sources */,
+				70A1D9E5BD1E60CE78C4ADEE /* DemoData.swift in Sources */,
 				4B896E2594ABD03C543BC446 /* EditPlayerSheet.swift in Sources */,
 				399161E3F1DC1CC7DABAE796 /* EmptyStateView.swift in Sources */,
+				446C072C7452B2B04207BAE0 /* GameLogic.swift in Sources */,
 				D25B338D0D23DE1118CE3C6F /* GameViewModel.swift in Sources */,
 				B987A081D1FCE98DAB42718E /* HapticManager.swift in Sources */,
 				D197E173A977BDDF9969C026 /* IncrementPickerView.swift in Sources */,
@@ -201,14 +341,47 @@
 				755F0CC5A9A3445824E826B2 /* PlayerRowView.swift in Sources */,
 				213E878788F17DD616B618D8 /* SavedGame.swift in Sources */,
 				CDD6A656CE5AF3CA0A7AA04F /* ScorekeepApp.swift in Sources */,
+				96659A3C083C4903F5AAB042 /* SortMode.swift in Sources */,
 				A636ADD28AC4F79982A5C061 /* SoundManager.swift in Sources */,
 				28E260605AA97EF2A877D732 /* ToastView.swift in Sources */,
+				E50D32407DD9D64BFA6F3C1B /* TrashTalk.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		54F057BE30F20CD8516289EC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1E76AC20E5F9B47AD8B740C9 /* Scorekeep */;
+			targetProxy = 49F1EA52E49ECDC3EA22EE98 /* PBXContainerItemProxy */;
+		};
+		6BACDABEE60F12A0F22BCB54 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1E76AC20E5F9B47AD8B740C9 /* Scorekeep */;
+			targetProxy = 59ECAEBF13769D4B3BC6AABA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		51D10DE4DE02D2160BEA064D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2837Q6TK6Y;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = co.scorekeep.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Scorekeep.app/Scorekeep";
+			};
+			name = Debug;
+		};
 		57C2979ED75E089C2276F155 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -226,6 +399,42 @@
 				PRODUCT_BUNDLE_IDENTIFIER = co.scorekeep.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		58955B436AAD2DDF59143D4D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2837Q6TK6Y;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = co.scorekeep.app.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Scorekeep;
+			};
+			name = Debug;
+		};
+		58DF494C0461221BE9E59BE6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2837Q6TK6Y;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = co.scorekeep.app.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Scorekeep;
 			};
 			name = Release;
 		};
@@ -283,6 +492,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Scorekeep;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
@@ -318,6 +529,24 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
+		};
+		EED2DB869F3EF90D5E1AC58C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2837Q6TK6Y;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = co.scorekeep.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Scorekeep.app/Scorekeep";
+			};
+			name = Release;
 		};
 		FE6717E29553CB581D828A79 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -367,6 +596,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Scorekeep;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
@@ -399,6 +630,24 @@
 			buildConfigurations = (
 				7AD770C2ECA83B7613D80A0E /* Debug */,
 				57C2979ED75E089C2276F155 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		77653CBA5B6B0FC837CC8D19 /* Build configuration list for PBXNativeTarget "ScorekeepUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				58955B436AAD2DDF59143D4D /* Debug */,
+				58DF494C0461221BE9E59BE6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AA7A5D1FC9210138446BE6C4 /* Build configuration list for PBXNativeTarget "ScorekeepTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				51D10DE4DE02D2160BEA064D /* Debug */,
+				EED2DB869F3EF90D5E1AC58C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

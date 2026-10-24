@@ -5,11 +5,12 @@ struct NewGameSheet: View {
     @Binding var isPresented: Bool
     @State private var gameName: String = ""
     @State private var showPastGames = false
+    @State private var loadedPastGame = false
 
     private var scoreSummary: String {
         viewModel.players
             .sorted { $0.score > $1.score }
-            .map { "\($0.name.isEmpty ? "Player" : $0.name) \($0.score)" }
+            .map { "\(GameLogic.displayName(for: $0, in: viewModel.players)) \($0.score)" }
             .joined(separator: " · ")
     }
 
@@ -71,12 +72,12 @@ struct NewGameSheet: View {
             .background(Color(.systemGray6))
             .navigationBarHidden(true)
             .sheet(isPresented: $showPastGames) {
-                PastGamesSheet(isPresented: $showPastGames)
+                PastGamesSheet(isPresented: $showPastGames, onLoad: { loadedPastGame = true })
                     .environment(viewModel)
             }
             .onChange(of: showPastGames) { _, newValue in
-                // If past games sheet was dismissed and a game was loaded, dismiss this sheet too
-                if !newValue && !viewModel.players.isEmpty {
+                // A game was loaded from Past Games: close this sheet too
+                if !newValue && loadedPastGame {
                     isPresented = false
                 }
             }

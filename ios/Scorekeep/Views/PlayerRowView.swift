@@ -4,6 +4,8 @@ struct PlayerRowView: View {
     let player: Player
     let index: Int
     let increment: Int
+    /// Points added in the current burst of taps, shown as "+5" beside the score.
+    let delta: Int?
     let onScoreChange: (Int) -> Void
     let onEdit: () -> Void
     let onDelete: () -> Void
@@ -34,21 +36,41 @@ struct PlayerRowView: View {
                     .frame(width: 30, height: 30)
                     .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Edit \(displayName)")
 
-            Spacer()
+            Spacer(minLength: 4)
+
+            if let delta, delta != 0 {
+                Text(delta > 0 ? "+\(delta)" : "\(delta)")
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .opacity(0.7)
+                    .transition(.opacity)
+                    .accessibilityHidden(true)
+            }
 
             Text("\(player.score)")
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
                 .scaleEffect(scoreBump ? 1.15 : 1.0)
                 .animation(.easeOut(duration: 0.15), value: scoreBump)
+                .accessibilityLabel("\(displayName) score \(player.score)")
 
-            ScoreButton(label: "−", delta: -1, increment: increment, fgColor: fgColor) { delta in
+            ScoreButton(
+                label: "−", delta: -1, increment: increment, fgColor: fgColor,
+                accessibilityLabel: "Subtract \(increment) from \(displayName)"
+            ) { delta in
                 onScoreChange(delta)
                 triggerBump()
             }
 
-            ScoreButton(label: "+", delta: 1, increment: increment, fgColor: fgColor) { delta in
+            ScoreButton(
+                label: "+", delta: 1, increment: increment, fgColor: fgColor,
+                accessibilityLabel: "Add \(increment) to \(displayName)"
+            ) { delta in
                 onScoreChange(delta)
                 triggerBump()
             }
@@ -80,16 +102,22 @@ struct PlayerRowView: View {
     }
 }
 
-// Separate view to handle tap + long-press without gesture conflicts
+/// Tap to change the score once; hold to repeat, speeding up after a moment.
+/// The tap counts on release, so a scroll that starts on the button never changes a score.
 private struct ScoreButton: View {
     let label: String
     let delta: Int
     let increment: Int
     let fgColor: Color
+    let accessibilityLabel: String
     let action: (Int) -> Void
 
-    @State private var timer: Timer?
-    @State private var longPressActive = false
+    /// True while a finger is down. Resets on its own if the system cancels the
+    /// touch (a scroll takes over, a sheet appears), which stops any repeat.
+    @GestureState private var isPressing = false
+    @State private var pressActive = false
+    @State private var repeatTask: Task<Void, Never>?
+    @State private var didRepeat = false
 
     var body: some View {
         ZStack {
@@ -104,46 +132,60 @@ private struct ScoreButton: View {
             }
         }
         .frame(width: 50, height: 50)
-        .background(fgColor.opacity(0.15))
+        .background(fgColor.opacity(isPressing ? 0.3 : 0.15))
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .contentShape(Rectangle())
         .gesture(
             DragGesture(minimumDistance: 0)
+                .updating($isPressing) { _, pressing, _ in
+                    pressing = true
+                }
                 .onChanged { _ in
-                    if !longPressActive {
-                        longPressActive = true
-                        // Fire single tap immediately
-                        action(delta)
-                        // Start long-press timer after delay
-                        timer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { _ in
-                            startRapidFire()
-                        }
+                    // Fires on touch down (minimumDistance 0), before onEnded.
+                    if !pressActive {
+                        pressActive = true
+                        startHoldTimer()
                     }
                 }
-                .onEnded { _ in
-                    stopAll()
+                .onEnded { value in
+                    let wasRepeating = didRepeat
+                    stopRepeating()
+                    let moved = hypot(value.translation.width, value.translation.height)
+                    if !wasRepeating && moved < 20 {
+                        action(delta)
+                    }
                 }
         )
+        .onChange(of: isPressing) { _, pressing in
+            if !pressing {
+                stopRepeating()
+            }
+        }
+        .onDisappear { stopRepeating() }
+        .accessibilityElement()
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { action(delta) }
     }
 
-    private func startRapidFire() {
-        var count = 0
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { t in
-            action(delta)
-            count += 1
-            if count > 10 {
-                t.invalidate()
-                timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
-                    action(delta)
-                }
+    private func startHoldTimer() {
+        didRepeat = false
+        repeatTask?.cancel()
+        repeatTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(350))
+            var count = 0
+            while !Task.isCancelled {
+                didRepeat = true
+                action(delta)
+                count += 1
+                try? await Task.sleep(for: .milliseconds(count > 10 ? 50 : 150))
             }
         }
     }
 
-    private func stopAll() {
-        timer?.invalidate()
-        timer = nil
-        longPressActive = false
+    private func stopRepeating() {
+        repeatTask?.cancel()
+        repeatTask = nil
+        pressActive = false
     }
 }

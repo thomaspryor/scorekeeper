@@ -47,9 +47,19 @@ for entry in "${DEVICES[@]}"; do
     xcrun simctl terminate "$udid" "$BUNDLE_ID" 2>/dev/null || true
     xcrun simctl launch "$udid" "$BUNDLE_ID" -demo "$scenario" >/dev/null
     # Celebration: catch the confetti mid-fall. Others: let sheets finish animating.
-    if [ "$scenario" = celebration ]; then sleep 2.5; else sleep 4; fi
+    if [ "$scenario" = celebration ]; then sleep 1.5; else sleep 4; fi
     file="$OUT/${prefix}-${n}-${scenario}.png"
     xcrun simctl io "$udid" screenshot --type=png "$file" >/dev/null
+    if [ "$scenario" = celebration ]; then
+      # The confetti must be moving: a second frame 0.3s later has to differ.
+      sleep 0.3
+      xcrun simctl io "$udid" screenshot --type=png "$OUT/.frame2.png" >/dev/null
+      if cmp -s "$file" "$OUT/.frame2.png"; then
+        echo "::error::Celebration screen is not animating (two frames 0.3s apart are identical)" >&2
+        exit 1
+      fi
+      rm -f "$OUT/.frame2.png"
+    fi
     size="$(sips -g pixelWidth -g pixelHeight "$file" | awk '/pixelWidth/{w=$2} /pixelHeight/{h=$2} END{print w "x" h}')"
     if [[ " $sizes " != *" $size "* ]]; then
       echo "::error::$file is $size; App Store accepts $sizes for this device class" >&2

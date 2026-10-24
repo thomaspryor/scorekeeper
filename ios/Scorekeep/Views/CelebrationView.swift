@@ -112,7 +112,7 @@ struct CelebrationView: View {
 private struct ConfettiView: View {
     private struct Piece {
         let x: Double       // 0...1 across the width
-        let y: Double       // starting height above the top, in points
+        let y: Double       // starting height above the top in points (negative: already on screen)
         let width: Double
         let height: Double
         let color: Color
@@ -132,7 +132,7 @@ private struct ConfettiView: View {
     @State private var pieces: [Piece] = (0..<80).map { _ in
         Piece(
             x: .random(in: 0...1),
-            y: .random(in: 0...600),
+            y: .random(in: -350...450),
             width: .random(in: 4...12),
             height: .random(in: 3...9),
             color: ConfettiView.colors.randomElement()!,

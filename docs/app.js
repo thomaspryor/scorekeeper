@@ -154,7 +154,16 @@
   }
 
   // Undo
+  // An "Undo" toast undoes the step it was shown for. Once another step is
+  // recorded or undone, its button would undo the wrong thing, so close it.
+  function dismissUndoToast() {
+    if (currentToast && currentToast.querySelector('.toast-undo-btn')) {
+      hideToast(currentToast);
+    }
+  }
+
   function pushUndo() {
+    dismissUndoToast();
     undoStack.push({
       players: JSON.stringify(state.players),
       originalOrder: [...state.originalOrder],
@@ -168,6 +177,7 @@
 
   function undo() {
     if (undoStack.length === 0) return;
+    dismissUndoToast();
     const snapshot = undoStack.pop();
     state.players = JSON.parse(snapshot.players);
     state.originalOrder = snapshot.originalOrder;
@@ -1847,6 +1857,10 @@
   }
 
   function handleShake() {
+    // Don't undo behind an open dialog (e.g. removing the player being named)
+    const dialogOpen = !editModal.hidden ||
+      document.querySelector('.celebration-overlay, .game-dialog-overlay');
+    if (dialogOpen) return;
     if (undoStack.length > 0) {
       haptic('medium');
       undo();

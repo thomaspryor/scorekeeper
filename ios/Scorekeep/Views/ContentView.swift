@@ -48,7 +48,7 @@ struct ContentView: View {
         }
         .background(.black)
         .preferredColorScheme(.dark)
-        .sheet(isPresented: $showEditSheet, onDismiss: { viewModel.endEditing() }) {
+        .sheet(isPresented: $showEditSheet) {
             if let id = editingPlayerId {
                 EditPlayerSheet(playerId: id, isPresented: $showEditSheet)
                     .environment(viewModel)
@@ -83,7 +83,10 @@ struct ContentView: View {
             )
         }
         .onReceive(NotificationCenter.default.publisher(for: .deviceDidShake)) { _ in
-            if viewModel.canUndo {
+            // Don't undo behind an open sheet (e.g. removing the player being named)
+            let sheetOpen = showEditSheet || showIncrementPicker || showNewGameSheet
+                || showPastGames || viewModel.celebration != nil
+            if !sheetOpen && viewModel.canUndo {
                 HapticManager.medium()
                 viewModel.undo()
                 viewModel.showToast("Shake undo!")

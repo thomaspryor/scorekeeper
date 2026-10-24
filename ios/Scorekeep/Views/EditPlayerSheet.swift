@@ -109,6 +109,14 @@ struct EditPlayerSheet: View {
                 nameFieldFocused = true
             }
         }
+        .onDisappear {
+            // Swiping the sheet away keeps what was typed (Done and Return also save).
+            let typed = name.trimmingCharacters(in: .whitespaces)
+            if !typed.isEmpty {
+                viewModel.updatePlayer(playerId, name: typed)
+            }
+            viewModel.endEditing()
+        }
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
     }

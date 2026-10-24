@@ -11,7 +11,8 @@ enum GameLogic {
 
     /// Players ordered for a sort mode. Ties keep their original order so sorting is stable.
     static func ordered(_ players: [Player], mode: SortMode, originalOrder: [String]) -> [Player] {
-        let rank = Dictionary(uniqueKeysWithValues: originalOrder.enumerated().map { ($1, $0) })
+        // First position wins if an id repeats, rather than crashing.
+        let rank = Dictionary(originalOrder.enumerated().map { ($1, $0) }, uniquingKeysWith: { first, _ in first })
         let position: (Player) -> Int = { rank[$0.id] ?? Int.max }
 
         switch mode {

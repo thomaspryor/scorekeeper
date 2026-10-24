@@ -122,13 +122,16 @@ final class GameViewModel {
         guard let data = store.data(forKey: Self.stateKey) else { return }
         do {
             let saved = try JSONDecoder().decode(PersistedState.self, from: data)
-            players = saved.players
+            // Drop duplicate ids (corrupt data) so lookups keyed by id can't crash.
+            var seen = Set<String>()
+            players = saved.players.filter { seen.insert($0.id).inserted }
             soundEnabled = saved.soundEnabled
             sortMode = saved.sortMode
             increment = max(1, saved.increment)
             // Keep originalOrder in step with the players actually present.
             let ids = Set(players.map(\.id))
-            originalOrder = saved.originalOrder.filter { ids.contains($0) }
+            var seenOrder = Set<String>()
+            originalOrder = saved.originalOrder.filter { ids.contains($0) && seenOrder.insert($0).inserted }
             for player in players where !originalOrder.contains(player.id) {
                 originalOrder.append(player.id)
             }
@@ -169,6 +172,7 @@ final class GameViewModel {
     // MARK: - Undo
 
     private func pushUndo() {
+        dismissUndoToast()
         let snapshot = UndoSnapshot(
             players: players,
             originalOrder: originalOrder,
@@ -183,6 +187,7 @@ final class GameViewModel {
 
     func undo() {
         guard let snapshot = undoStack.popLast() else { return }
+        dismissUndoToast()
         clearDeltas()
         editUndoPlayerId = nil
         players = snapshot.players
@@ -327,7 +332,7 @@ final class GameViewModel {
 
     func endGame() {
         guard let standings = GameLogic.standings(players, lowestWins: lowestScoreWins, originalOrder: originalOrder) else { return }
-        let names = Dictionary(uniqueKeysWithValues: players.map { ($0.id, GameLogic.displayName(for: $0, in: players)) })
+        let names = Dictionary(players.map { ($0.id, GameLogic.displayName(for: $0, in: players)) }, uniquingKeysWith: { first, _ in first })
         celebration = Celebration(standings: standings, names: names)
         if effectsEnabled {
             HapticManager.success()
@@ -481,6 +486,15 @@ final class GameViewModel {
             toastMessage = nil
             toastShowUndo = false
             toastUndoAction = nil
+        }
+    }
+
+    /// An "Undo" toast undoes the step it was shown for. Once another step is
+    /// recorded or undone, its button would undo the wrong thing, so close it.
+    private func dismissUndoToast() {
+        if toastShowUndo {
+            toastDismissTask?.cancel()
+            dismissToast()
         }
     }
 

@@ -35,6 +35,11 @@ final class GameLogicTests: XCTestCase {
         XCTAssertEqual(GameLogic.ordered([stray, a], mode: .none, originalOrder: ["A"]).map(\.id), ["A", "Z"])
     }
 
+    func testOrderedToleratesRepeatedIdsInOriginalOrder() {
+        let a = player("A", 1), b = player("B", 2)
+        XCTAssertEqual(GameLogic.ordered([b, a], mode: .none, originalOrder: ["A", "B", "A"]).map(\.id), ["A", "B"])
+    }
+
     // MARK: - Standings
 
     func testStandingsNeedsTwoPlayers() {

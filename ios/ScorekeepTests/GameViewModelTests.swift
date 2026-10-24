@@ -161,6 +161,30 @@ final class GameViewModelTests: XCTestCase {
         XCTAssertEqual(vm.undoStack.count, 50)
     }
 
+    // MARK: - Undo toast
+
+    func testANewStepClosesThePendingUndoToast() {
+        let vm = makeViewModel()
+        seed(vm, [("A", 0), ("B", 0)])
+        vm.removePlayer(vm.players[0].id)
+        XCTAssertTrue(vm.toastShowUndo)
+        vm.changeScore(vm.players[0].id, delta: 1)
+        XCTAssertFalse(vm.toastShowUndo, "toast Undo would now undo the score change, not the delete")
+        vm.performToastUndo()
+        XCTAssertEqual(vm.players.map(\.name), ["B"])
+        XCTAssertEqual(vm.players[0].score, 1)
+    }
+
+    func testToolbarUndoClosesTheUndoToast() {
+        let vm = makeViewModel()
+        seed(vm, [("A", 3), ("B", 7)])
+        vm.resetScores()
+        XCTAssertTrue(vm.toastShowUndo)
+        vm.undo()
+        XCTAssertFalse(vm.toastShowUndo)
+        XCTAssertEqual(vm.players.map(\.score), [3, 7])
+    }
+
     // MARK: - Sort
 
     func testSortCyclesAndRestoresOriginalOrder() {
@@ -271,6 +295,21 @@ final class GameViewModelTests: XCTestCase {
         XCTAssertEqual(vm.originalOrder, ["a"])
         XCTAssertEqual(vm.increment, 1)
         XCTAssertTrue(vm.soundEnabled)
+    }
+
+    func testDuplicateIdsInSavedStateAreDropped() {
+        let json = ##"""
+        {"players":[{"id":"a","name":"A","score":2},{"id":"a","name":"A2","score":9},{"id":"b","name":"B","score":4}],
+         "originalOrder":["a","b","a"]}
+        """##
+        let store = freshStore()
+        store.set(Data(json.utf8), forKey: GameViewModel.stateKey)
+        let vm = makeViewModel(store)
+        XCTAssertEqual(vm.players.map(\.name), ["A", "B"])
+        XCTAssertEqual(vm.originalOrder, ["a", "b"])
+        vm.cycleSort()
+        vm.endGame()
+        XCTAssertEqual(vm.celebration?.standings.winningScore, 4)
     }
 
     func testCorruptStateFallsBackToAnEmptyGame() {

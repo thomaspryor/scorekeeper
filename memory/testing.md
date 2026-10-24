@@ -61,3 +61,10 @@ committed project byte for byte. It needs `USER` set (`USER=ci xcodegen generate
   every field with a default; add a test for each migration.
 - **A static named like an enum case** (`DemoScenario.history`) is a redeclaration
   error; the Linux check can't catch it if the file imports SwiftUI-only code.
+- **Undo toasts go stale:** a toast's Undo pops whatever is on top of the stack. Any
+  new undo step (or a separate undo) must close a pending Undo toast, on both
+  platforms. Covered by `GameViewModelTests` and the web smoke test.
+- **Shake runs behind sheets:** shake-to-undo must ignore shakes while a sheet,
+  dialog or the celebration is open.
+- **`Dictionary(uniqueKeysWithValues:)` traps on duplicate keys.** Use
+  `uniquingKeysWith:` for anything built from saved data, and dedupe ids on load.

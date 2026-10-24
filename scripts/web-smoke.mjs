@@ -67,6 +67,14 @@ try {
   check(winner === 'MAYA', `end game crowns the leader (${winner})`);
   await page.click('.btn-undo-end');
 
+  // An "Undo" toast must close once another step is recorded, or its button
+  // would undo that newer step instead of the one it was shown for.
+  await page.click('#btn-reset');
+  check(await page.locator('.toast-undo-btn').count() === 1, 'reset shows an Undo toast');
+  await plus.click();
+  await page.waitForTimeout(300);
+  check(await page.locator('.toast-undo-btn').count() === 0, 'a new score change closes the Undo toast');
+
   await page.reload();
   const reloaded = await page.locator('.player-row').count();
   check(reloaded === 2, `players survive a reload (${reloaded})`);

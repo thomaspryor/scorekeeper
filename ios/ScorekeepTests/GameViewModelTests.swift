@@ -325,8 +325,8 @@ final class GameViewModelTests: XCTestCase {
     func testDemoScenariosLoadWithoutTouchingTheRealStore() {
         for scenario in [DemoScenario.scoreboard, .celebration, .history] {
             let vm = scenario.makeViewModel()
-            XCTAssertEqual(vm.players.count, DemoScenario.players.count)
-            XCTAssertEqual(vm.loadHistory().count, DemoScenario.history.count)
+            XCTAssertEqual(vm.players.count, DemoScenario.samplePlayers.count)
+            XCTAssertEqual(vm.loadHistory().count, DemoScenario.sampleHistory.count)
             XCTAssertEqual(vm.celebration != nil, scenario == .celebration)
         }
     }

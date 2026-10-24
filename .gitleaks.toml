@@ -19,4 +19,17 @@ paths = [
   '''(^|/)\.idea/.*''',
   '''(^|/)\.vscode/.*''',
   '''\.log$''',
+  '''(^|/)__pycache__/.*''',
+  '''(^|/)ios/build/.*''',
+  '''(^|/)ios/fastlane/screenshots/.*''',
+  '''(^|/)ios/fastlane/report\.xml$''',
+  '''(^|/)ios/fastlane/test_output/.*''',
+]
+
+regexes = [
+  # App Store Connect API key issuer ID (default in ios-release.yml). A public
+  # identifier for the Apple Developer team, useless without the .p8 private key,
+  # which lives only in the ASC_API_KEY_P8 GitHub secret. Same allowlist entry as
+  # thomaspryor/BroadwayScorecard-app.
+  '''2d03cc88-e016-4fb7-8d89-a70a4a912875''',
 ]

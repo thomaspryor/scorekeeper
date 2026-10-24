@@ -12,6 +12,8 @@ on:
       - 'CLAUDE.md'
       - 'README.md'
       - '.gitleaks.toml'
+      - 'memory/**'
+      - 'scripts/**'
   schedule:
     - cron: '0 7 * * 1'  # Mondays at 7 AM UTC
   workflow_dispatch:

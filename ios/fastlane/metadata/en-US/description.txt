@@ -1,0 +1,24 @@
+Scorekeep keeps score for any game, so you can stop hunting for a pen and paper. Board games, card games, darts, trivia night, backyard games: if it has points, Scorekeep can track it.
+
+Add your players, give each one a color, and tap plus or minus to change scores. Hold a button to count quickly. Big, bright rows are easy to read from across the table.
+
+SCORING
+- Tap to add or subtract points, hold for rapid counting
+- Set the step to 1, 2, 5, 10, 25, 50 or 100 for high-scoring games
+- A running total shows how many points you just added
+- Undo any mistake with the Undo button or a quick shake
+
+GAME TOOLS
+- Sort players by score, highest or lowest first
+- Lowest-score-wins games (golf, hearts) are supported: sort low to high before ending
+- End the game to crown the winner with confetti and final standings
+- Rematch keeps the same players and starts the scores over
+- Lighthearted trash talk reacts to the standings as you play
+
+YOUR GAMES
+- Save finished games and reload them later
+- Drag to reorder players, swipe to edit or delete
+- Works offline with no account and no sign-up
+
+PRIVATE BY DESIGN
+Everything stays on your device. Scorekeep has no ads, no tracking and no account, and it collects no data.

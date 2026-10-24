@@ -14,7 +14,7 @@ enum DemoScenario: String {
         UserDefaults.standard.string(forKey: "demo").flatMap(DemoScenario.init(rawValue:))
     }
 
-    static let players = [
+    static let samplePlayers = [
         Player(name: "MAYA", score: 42, color: "#2ECC40"),
         Player(name: "JORDAN", score: 38, color: "#0074D9"),
         Player(name: "SAM", score: 35, color: "#FF851B"),
@@ -22,7 +22,7 @@ enum DemoScenario: String {
         Player(name: "LEO", score: 19, color: "#FFDC00"),
     ]
 
-    static let history = [
+    static let sampleHistory = [
         SavedGame(name: "Catan night", date: Date(timeIntervalSinceNow: -2 * 86_400), players: [
             Player(name: "MAYA", score: 10, color: "#2ECC40"),
             Player(name: "SAM", score: 8, color: "#FF851B"),
@@ -55,14 +55,14 @@ enum DemoScenario: String {
         }
 
         let state = GameViewModel.PersistedState(
-            players: Self.players,
+            players: Self.samplePlayers,
             soundEnabled: false,
             sortMode: .desc,
-            originalOrder: Self.players.map(\.id),
+            originalOrder: Self.samplePlayers.map(\.id),
             increment: 1
         )
         store.set(try? JSONEncoder().encode(state), forKey: GameViewModel.stateKey)
-        store.set(try? JSONEncoder().encode(Self.history), forKey: GameViewModel.historyKey)
+        store.set(try? JSONEncoder().encode(Self.sampleHistory), forKey: GameViewModel.historyKey)
 
         let viewModel = GameViewModel(store: store, effects: false)
         viewModel.trashTalk = "Somebody stop MAYA"

@@ -135,7 +135,7 @@ private struct ConfettiView: View {
             y: .random(in: 0...600),
             width: .random(in: 4...12),
             height: .random(in: 3...9),
-            color: colors.randomElement()!,
+            color: ConfettiView.colors.randomElement()!,
             vy: .random(in: 120...300),
             vx: .random(in: -60...60),
             rotation: .random(in: 0...360),
@@ -144,6 +144,8 @@ private struct ConfettiView: View {
     }
 
     var body: some View {
+        let pieces = pieces
+        let start = start
         TimelineView(.animation(minimumInterval: nil, paused: finished)) { timeline in
             let t = timeline.date.timeIntervalSince(start)
             Canvas { context, size in

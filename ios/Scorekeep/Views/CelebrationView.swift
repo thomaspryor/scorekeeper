@@ -108,66 +108,62 @@ struct CelebrationView: View {
     }
 }
 
-/// Three seconds of falling confetti, drawn with Canvas.
+/// Three seconds of falling confetti, driven by SwiftUI animations.
 private struct ConfettiView: View {
-    private struct Piece {
+    private struct Piece: Identifiable {
+        let id: Int
         let x: Double       // 0...1 across the width
-        let y: Double       // starting height above the top in points (negative: already on screen)
+        let startY: Double  // fraction of the height; negative starts above the screen
+        let endY: Double    // fraction of the height; past 1 ends below the screen
+        let drift: Double   // sideways travel in points
         let width: Double
         let height: Double
         let color: Color
-        let vy: Double      // points per second
-        let vx: Double
         let rotation: Double
-        let spin: Double    // degrees per second
+        let spin: Double    // degrees turned while falling
     }
 
     private static let colors = ["#FF4136", "#FF851B", "#FFDC00", "#2ECC40", "#0074D9", "#F012BE", "#B10DC9", "#01FF70"]
         .map { ColorPalette.color(from: $0) }
     private static let duration = 3.0
-    private static let fadeTime = 0.5
 
-    @State private var start = Date()
-    @State private var finished = false
-    @State private var pieces: [Piece] = (0..<80).map { _ in
+    @State private var pieces: [Piece] = (0..<80).map { i in
         Piece(
+            id: i,
             x: .random(in: 0...1),
-            y: .random(in: -350...450),
+            startY: .random(in: -0.4...0.35),
+            endY: .random(in: 1.05...1.6),
+            drift: .random(in: -120...120),
             width: .random(in: 4...12),
             height: .random(in: 3...9),
             color: ConfettiView.colors.randomElement()!,
-            vy: .random(in: 120...300),
-            vx: .random(in: -60...60),
             rotation: .random(in: 0...360),
-            spin: .random(in: -300...300)
+            spin: .random(in: -900...900)
         )
     }
+    @State private var falling = false
+    @State private var faded = false
 
     var body: some View {
-        let pieces = pieces
-        let start = start
-        TimelineView(.animation(minimumInterval: nil, paused: finished)) { timeline in
-            let t = timeline.date.timeIntervalSince(start)
-            Canvas { context, size in
-                guard t < Self.duration else { return }
-                let opacity = min(1, (Self.duration - t) / Self.fadeTime)
-                for piece in pieces {
-                    let x = piece.x * size.width + piece.vx * t
-                    // gravity: 180 pt/s²
-                    let y = -piece.y + piece.vy * t + 90 * t * t
-                    var ctx = context
-                    ctx.opacity = opacity
-                    ctx.translateBy(x: x, y: y)
-                    ctx.rotate(by: .degrees(piece.rotation + piece.spin * t))
-                    let rect = CGRect(x: -piece.width / 2, y: -piece.height / 2, width: piece.width, height: piece.height)
-                    ctx.fill(Path(rect), with: .color(piece.color))
+        GeometryReader { geo in
+            ZStack {
+                ForEach(pieces) { piece in
+                    Rectangle()
+                        .fill(piece.color)
+                        .frame(width: piece.width, height: piece.height)
+                        .rotationEffect(.degrees(piece.rotation + (falling ? piece.spin : 0)))
+                        .position(
+                            x: piece.x * geo.size.width + (falling ? piece.drift : 0),
+                            y: (falling ? piece.endY : piece.startY) * geo.size.height
+                        )
                 }
             }
+            .opacity(faded ? 0 : 1)
         }
-        .task {
-            // Stop redrawing once the confetti has fallen.
-            try? await Task.sleep(for: .seconds(Self.duration))
-            finished = true
+        .onAppear {
+            // easeIn reads as gravity: slow at the top, faster as pieces fall.
+            withAnimation(.easeIn(duration: Self.duration)) { falling = true }
+            withAnimation(.linear(duration: 0.6).delay(Self.duration - 0.6)) { faded = true }
         }
     }
 }

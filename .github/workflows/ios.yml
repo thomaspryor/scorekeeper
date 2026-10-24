@@ -98,8 +98,11 @@ jobs:
         run: ios/scripts/screenshots.sh "$RUNNER_TEMP/screenshots"
 
       - name: Upload screenshots
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: app-store-screenshots
-          path: ${{ runner.temp }}/screenshots/*.png
+          # .frame2.png is kept when the celebration animation check fails
+          path: ${{ runner.temp }}/screenshots/
+          include-hidden-files: true
           if-no-files-found: error

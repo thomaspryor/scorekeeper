@@ -73,6 +73,7 @@ struct EditPlayerSheet: View {
                         .submitLabel(.done)
                         .onSubmit { confirmEdit() }
                         .focused($nameFieldFocused)
+                        .accessibilityIdentifier("playerNameField")
                         .onChange(of: name) { _, newValue in
                             if newValue.count > Self.maxNameLength {
                                 name = String(newValue.prefix(Self.maxNameLength))

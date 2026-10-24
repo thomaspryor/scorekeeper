@@ -1,0 +1,37 @@
+name: Web CI
+
+# Smoke-tests the web app (docs/) in headless Chromium at phone size.
+# Playwright is installed only here, so the web app keeps zero dependencies.
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'docs/**'
+      - 'scripts/web-smoke.mjs'
+      - '.github/workflows/web.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'docs/**'
+      - 'scripts/web-smoke.mjs'
+      - '.github/workflows/web.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright (CI only)
+        run: |
+          mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund playwright@1
+          npx playwright install --with-deps chromium
+      - name: Smoke test
+        run: NODE_PATH="$RUNNER_TEMP/pw/node_modules" node scripts/web-smoke.mjs

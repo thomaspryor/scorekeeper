@@ -1215,18 +1215,21 @@
     const player = state.players.find(p => p.id === playerId);
     if (!player) return;
 
-    editNameInput.value = player.name;
+    // Clear before showing: clearing inside the focus timeout below erased
+    // anything typed or pasted in the first 100ms.
+    const isUnnamed = isNewPlayer || !player.name;
+    editNameInput.value = isUnnamed ? '' : player.name;
+    if (isUnnamed) {
+      editNameInput.placeholder = `Player ${state.players.findIndex(p => p.id === playerId) + 1}`;
+    }
     updateColorPickerSelection(player.color);
     editModal.hidden = false;
 
     // Focus and show keyboard - use longer delay for Safari iOS
     setTimeout(() => {
       editNameInput.focus();
-      // For new players, select all; for existing, put cursor at end
-      if (isNewPlayer || !player.name) {
-        editNameInput.value = ''; // Clear for new player
-        editNameInput.placeholder = `Player ${state.players.findIndex(p => p.id === playerId) + 1}`;
-      } else {
+      // Existing names are selected so typing replaces them
+      if (!isUnnamed) {
         editNameInput.select();
       }
     }, 100);

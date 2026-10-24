@@ -16,11 +16,17 @@
    on the newest iPhone Pro Max and iPad Pro 13" simulators and checks pixel sizes.
    Look at the artifact after any UI change, iPad included.
 
+5. **Web smoke test**: `scripts/web-smoke.mjs` drives `docs/` in headless Chromium
+   at 390x844: naming, scoring, undo, end game, reload, no horizontal scroll on
+   any page, no console errors. Locally: `NODE_PATH=$(npm root -g) node scripts/web-smoke.mjs`.
+   It caught the name-field race (typing in the first 100ms was erased).
+
 ## What runs when
 | Trigger | What | Where |
 |---|---|---|
 | PR / push to master touching `ios/` | project sync check, layers 1-3, screenshots | `ios.yml` |
 | Release dispatch | layers 1-3 again, then build and ship | `ios-release.yml` |
+| PR / push to master touching `docs/` | web smoke test | `web.yml` |
 | Every commit | gitleaks | `scripts/hooks/pre-commit`, `gitleaks.yml` |
 
 macOS minutes are free: the repo is public.

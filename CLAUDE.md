@@ -22,8 +22,8 @@ give exact steps with links, once, and say why it can't be automated.
   matches `ios/project.yml`, and captures screenshots. It must be green.
 - Pure game rules (`ios/Scorekeep/Logic`, `Models`) also run on Linux Swift;
   recipe in `memory/testing.md`. Use it to catch errors before a CI round trip.
-- Web: open `docs/index.html` with Playwright at phone width and exercise the
-  change. Screenshot it before shipping UI.
+- Web: `web.yml` runs `scripts/web-smoke.mjs` (Playwright, phone size). Extend
+  it for new flows; screenshot UI changes before shipping.
 - New tests go next to the existing ones; workflows pick up whole test targets,
   never list test files one by one.
 

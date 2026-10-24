@@ -12,3 +12,9 @@ Thumbs.db
 *.log
 ios/Scorekeep.xcodeproj/xcuserdata/
 ios/Scorekeep.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Python bytecode (ios/scripts)
+__pycache__/
+
+# Local build output (ios/scripts/screenshots.sh, release builds)
+ios/build/

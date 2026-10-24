@@ -1,37 +1,39 @@
 import SwiftUI
 
 struct ContentView: View {
+    var demo: DemoScenario? = nil
+
     @Environment(GameViewModel.self) private var viewModel
     @State private var editingPlayerId: String?
     @State private var showEditSheet = false
     @State private var showIncrementPicker = false
     @State private var showNewGameSheet = false
     @State private var showPastGames = false
+    /// Set by the celebration's "New Game" button; acted on once the cover is gone.
+    @State private var newGameAfterCelebration = false
 
     var body: some View {
         @Bindable var vm = viewModel
 
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
-                // Top toolbar
                 topToolbar
 
-                // Player list or empty state
                 if viewModel.players.isEmpty {
                     EmptyStateView {
-                        let player = viewModel.addPlayer()
-                        editingPlayerId = player.id
-                        showEditSheet = true
+                        addPlayer()
                     }
                 } else {
                     playerList
                 }
 
-                // Bottom toolbar
+                if let line = viewModel.trashTalk, viewModel.players.count >= 2 {
+                    trashTalkBar(line)
+                }
+
                 bottomToolbar
             }
 
-            // Toast overlay
             if let message = viewModel.toastMessage {
                 ToastView(
                     message: message,
@@ -46,7 +48,7 @@ struct ContentView: View {
         }
         .background(.black)
         .preferredColorScheme(.dark)
-        .sheet(isPresented: $showEditSheet) {
+        .sheet(isPresented: $showEditSheet, onDismiss: { viewModel.endEditing() }) {
             if let id = editingPlayerId {
                 EditPlayerSheet(playerId: id, isPresented: $showEditSheet)
                     .environment(viewModel)
@@ -64,6 +66,22 @@ struct ContentView: View {
             PastGamesSheet(isPresented: $showPastGames)
                 .environment(viewModel)
         }
+        .fullScreenCover(item: $vm.celebration, onDismiss: {
+            if newGameAfterCelebration {
+                newGameAfterCelebration = false
+                showNewGameSheet = true
+            }
+        }) { celebration in
+            CelebrationView(
+                celebration: celebration,
+                onBack: { viewModel.celebration = nil },
+                onRematch: { viewModel.rematch() },
+                onNewGame: {
+                    newGameAfterCelebration = true
+                    viewModel.celebration = nil
+                }
+            )
+        }
         .onReceive(NotificationCenter.default.publisher(for: .deviceDidShake)) { _ in
             if viewModel.canUndo {
                 HapticManager.medium()
@@ -71,6 +89,22 @@ struct ContentView: View {
                 viewModel.showToast("Shake undo!")
             }
         }
+        .onAppear {
+            if demo == .history {
+                showPastGames = true
+            }
+        }
+    }
+
+    private func addPlayer() {
+        let player = viewModel.addPlayer()
+        editingPlayerId = player.id
+        showEditSheet = true
+    }
+
+    private func editPlayer(_ id: String) {
+        editingPlayerId = id
+        showEditSheet = true
     }
 
     // MARK: - Top Toolbar
@@ -83,22 +117,34 @@ struct ContentView: View {
             .disabled(!viewModel.canUndo)
             .opacity(viewModel.canUndo ? 1.0 : 0.3)
 
-            toolbarButton(label: "Player", icon: "person.badge.plus") {
-                let player = viewModel.addPlayer()
-                editingPlayerId = player.id
-                showEditSheet = true
+            toolbarButton(label: "Player", icon: "person.badge.plus", accessibilityLabel: "Add player") {
+                addPlayer()
             }
 
-            toolbarButton(label: viewModel.isSorted ? "Unsort" : "Sort", icon: "line.3.horizontal.decrease") {
+            toolbarButton(
+                label: viewModel.sortMode.buttonLabel,
+                icon: viewModel.sortMode.buttonIcon,
+                accessibilityLabel: sortAccessibilityLabel
+            ) {
                 withAnimation(.spring(duration: 0.35)) {
-                    viewModel.toggleSort()
+                    viewModel.cycleSort()
                 }
             }
+            .disabled(viewModel.players.count < 2)
+            .opacity(viewModel.players.count < 2 ? 0.3 : 1.0)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
         .padding(.top, 4)
         .background(Color(.systemGray6))
+    }
+
+    private var sortAccessibilityLabel: String {
+        switch viewModel.sortMode {
+        case .none: return "Sort by score, highest first"
+        case .desc: return "Sort by score, lowest first"
+        case .asc: return "Restore original order"
+        }
     }
 
     // MARK: - Player List
@@ -110,12 +156,12 @@ struct ContentView: View {
                     player: player,
                     index: index,
                     increment: viewModel.increment,
+                    delta: viewModel.scoreDeltas[player.id],
                     onScoreChange: { delta in
                         viewModel.changeScore(player.id, delta: delta)
                     },
                     onEdit: {
-                        editingPlayerId = player.id
-                        showEditSheet = true
+                        editPlayer(player.id)
                     },
                     onDelete: {
                         viewModel.removePlayer(player.id)
@@ -129,11 +175,8 @@ struct ContentView: View {
                 viewModel.movePlayer(from: source, to: destination)
             }
 
-            // Add player button at bottom
             Button {
-                let player = viewModel.addPlayer()
-                editingPlayerId = player.id
-                showEditSheet = true
+                addPlayer()
             } label: {
                 HStack(spacing: 12) {
                     Image(systemName: "person.badge.plus")
@@ -155,19 +198,42 @@ struct ContentView: View {
         .background(.black)
     }
 
+    // MARK: - Trash talk
+
+    private func trashTalkBar(_ line: String) -> some View {
+        Text(line)
+            .font(.system(size: 14, weight: .semibold))
+            .italic()
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+            .lineLimit(2)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(Color(.systemGray6).opacity(0.6))
+            .id(line)
+            .transition(.opacity.combined(with: .move(edge: .bottom)))
+    }
+
     // MARK: - Bottom Toolbar
 
     private var bottomToolbar: some View {
         HStack(spacing: 8) {
-            toolbarButton(label: "±\(viewModel.increment)", icon: "plusminus") {
+            toolbarButton(label: "±\(viewModel.increment)", icon: "plusminus", accessibilityLabel: "Score increment \(viewModel.increment)") {
                 showIncrementPicker = true
             }
 
-            toolbarButton(label: "Reset", icon: "arrow.counterclockwise") {
+            toolbarButton(label: "End", icon: "trophy.fill", accessibilityLabel: "End game and show winner") {
+                viewModel.endGame()
+            }
+            .disabled(viewModel.players.count < 2)
+            .opacity(viewModel.players.count < 2 ? 0.3 : 1.0)
+
+            toolbarButton(label: "Reset", icon: "arrow.counterclockwise", accessibilityLabel: "Reset all scores to zero") {
                 viewModel.resetScores()
             }
 
-            toolbarButton(label: "+ Game", icon: nil) {
+            toolbarButton(label: "Game", icon: "plus.square.on.square", accessibilityLabel: viewModel.players.isEmpty ? "Past games" : "New game") {
                 if viewModel.players.isEmpty {
                     showPastGames = true
                 } else {
@@ -177,7 +243,8 @@ struct ContentView: View {
 
             toolbarButton(
                 label: "Sound",
-                icon: viewModel.soundEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill"
+                icon: viewModel.soundEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill",
+                accessibilityLabel: viewModel.soundEnabled ? "Sound on" : "Sound off"
             ) {
                 viewModel.toggleSound()
             }
@@ -190,21 +257,42 @@ struct ContentView: View {
 
     // MARK: - Toolbar Button
 
-    private func toolbarButton(label: String, icon: String?, action: @escaping () -> Void) -> some View {
+    /// Icon and label side by side when there is room, stacked on narrow phones.
+    private func toolbarButton(
+        label: String,
+        icon: String?,
+        accessibilityLabel: String? = nil,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
-            HStack(spacing: 6) {
-                if let icon {
-                    Image(systemName: icon)
-                        .font(.system(size: 16, weight: .semibold))
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 6) {
+                    if let icon {
+                        Image(systemName: icon)
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    Text(label)
+                        .font(.system(size: 14, weight: .semibold))
+                        .fixedSize()
                 }
-                Text(label)
-                    .font(.system(size: 14, weight: .semibold))
+                VStack(spacing: 2) {
+                    if let icon {
+                        Image(systemName: icon)
+                            .font(.system(size: 15, weight: .semibold))
+                    }
+                    Text(label)
+                        .font(.system(size: 11, weight: .semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
             }
             .frame(maxWidth: .infinity, minHeight: 44)
             .background(Color(.systemGray5))
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel ?? label)
     }
 }
 

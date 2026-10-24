@@ -9,6 +9,8 @@ struct EditPlayerSheet: View {
     @State private var selectedColor: String = "#AAAAAA"
     @FocusState private var nameFieldFocused: Bool
 
+    static let maxNameLength = 20
+
     private var player: Player? {
         viewModel.players.first { $0.id == playerId }
     }
@@ -37,6 +39,8 @@ struct EditPlayerSheet: View {
                                 .animation(.easeOut(duration: 0.15), value: selectedColor)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(ColorPalette.name(for: hex))
+                        .accessibilityAddTraits(selectedColor == hex ? .isSelected : [])
                     }
                 }
                 .padding(.horizontal)
@@ -54,6 +58,7 @@ struct EditPlayerSheet: View {
                             .foregroundStyle(.white)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
+                    .accessibilityLabel("Delete player")
 
                     TextField("Player name", text: $name)
                         .textFieldStyle(.plain)
@@ -68,6 +73,11 @@ struct EditPlayerSheet: View {
                         .submitLabel(.done)
                         .onSubmit { confirmEdit() }
                         .focused($nameFieldFocused)
+                        .onChange(of: name) { _, newValue in
+                            if newValue.count > Self.maxNameLength {
+                                name = String(newValue.prefix(Self.maxNameLength))
+                            }
+                        }
 
                     Button {
                         confirmEdit()
@@ -79,6 +89,7 @@ struct EditPlayerSheet: View {
                             .foregroundStyle(.white)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
+                    .accessibilityLabel("Done")
                 }
                 .padding(.horizontal)
 

@@ -48,6 +48,18 @@ platform :ios do
 
   desc "Push listing text and screenshots; optionally submit the build for App Review"
   lane :listing do |options|
+    # App Review refuses a submission until the content rights question is answered.
+    # Scorekeep shows no third-party content (players type their own names and scores).
+    app = Spaceship::ConnectAPI::App.find(BUNDLE_ID)
+    unless app.content_rights_declaration
+      app.update(attributes: {
+        content_rights_declaration: Spaceship::ConnectAPI::App::ContentRightsDeclaration::DOES_NOT_USE_THIRD_PARTY_CONTENT
+      })
+      UI.success("Answered content rights: no third-party content")
+    end
+
+    # The build is attached to the version only when submitting; without
+    # submit the version page keeps showing "Add Build".
     deliver(
       app_identifier: BUNDLE_ID,
       app_version: options.fetch(:version),

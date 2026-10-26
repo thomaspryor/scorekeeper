@@ -17,6 +17,11 @@ Dispatch `ios-release.yml` (GitHub MCP `actions_run_trigger`, or the Actions tab
 - `submit_for_review=true`: same, then submits for review with automatic release.
 The workflow re-runs all tests first and fails with a clear message when setup is missing.
 
+Only the submit run attaches the build to the version (a listing-only run leaves
+"Add Build" on the version page). The listing lane also answers the content rights
+question ("no third-party content"); App Review rejects a submission without it
+(release run 5, 2026-10-26).
+
 ## Signing
 Unsigned archive, then `xcodebuild -exportArchive -allowProvisioningUpdates` with
 the API key signs it with a cloud-managed distribution certificate. That needs an
@@ -54,4 +59,4 @@ These can't be done through Apple's API with an API key:
 ## Release history
 | Version | Build | Date | Notes |
 |---|---|---|---|
-| 1.0.0 | - | - | First submission pending one-time setup |
+| 1.0.0 | 2, 4, 5 | 2026-10-26 | TestFlight builds; listing + screenshots pushed. Submit failed on missing content rights (fixed) |

@@ -18,7 +18,9 @@ Dispatch `ios-release.yml` (GitHub MCP `actions_run_trigger`, or the Actions tab
 - `submit_for_review=true tested_build=<N>`: only after the owner approved build N.
   Skips building, pushes listing + screenshots and submits build N with automatic
   release. Refuses without tested_build.
-The owner reaches builds through the internal TestFlight group in App Store Connect.
+The owner reaches builds through the internal TestFlight group "Owner" (every
+build, automatic). `ios-testflight-access.yml` creates it and adds the account
+holder and admins; re-run it if a new admin needs builds.
 2026-10-26: a submission was started before the owner had tried the app; they
 stopped it ("I haven't even played with this app"). That is why tested_build exists.
 

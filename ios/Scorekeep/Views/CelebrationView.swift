@@ -27,7 +27,9 @@ struct CelebrationView: View {
                 .ignoresSafeArea()
 
             if !reduceMotion {
-                ConfettiView()
+                // Screenshot demo: keep it falling so a slow simulator still
+                // captures confetti mid-air (screenshots.sh checks it moves).
+                ConfettiView(loops: DemoScenario.current == .celebration)
                     .ignoresSafeArea()
                     .allowsHitTesting(false)
             }
@@ -110,6 +112,8 @@ struct CelebrationView: View {
 
 /// Three seconds of falling confetti, driven by SwiftUI animations.
 private struct ConfettiView: View {
+    var loops = false
+
     private struct Piece: Identifiable {
         let id: Int
         let x: Double       // 0...1 across the width
@@ -162,6 +166,10 @@ private struct ConfettiView: View {
         }
         .onAppear {
             // easeIn reads as gravity: slow at the top, faster as pieces fall.
+            if loops {
+                withAnimation(.easeIn(duration: Self.duration).repeatForever(autoreverses: false)) { falling = true }
+                return
+            }
             withAnimation(.easeIn(duration: Self.duration)) { falling = true }
             withAnimation(.linear(duration: 0.6).delay(Self.duration - 0.6)) { faded = true }
         }

@@ -42,7 +42,18 @@ platform :ios do
     app = Spaceship::ConnectAPI::App.find(BUNDLE_ID)
     group = app.get_beta_groups(filter: { name: INTERNAL_GROUP }).find(&:is_internal_group)
     unless group
-      group = app.create_beta_group(group_name: INTERNAL_GROUP, is_internal_group: true, has_access_to_all_builds: true)
+      # Not app.create_beta_group: fastlane 2.241.1 always sends public link
+      # fields, which Apple rejects for internal groups ("Public link limit
+      # cannot be applied to internal group").
+      Spaceship::ConnectAPI.test_flight_request_client.post("v1/betaGroups", {
+        data: {
+          type: "betaGroups",
+          attributes: { name: INTERNAL_GROUP, isInternalGroup: true, hasAccessToAllBuilds: true },
+          relationships: { app: { data: { type: "apps", id: app.id } } }
+        }
+      })
+      group = app.get_beta_groups(filter: { name: INTERNAL_GROUP }).find(&:is_internal_group)
+      UI.user_error!("Created group '#{INTERNAL_GROUP}' but could not read it back") unless group
       UI.success("Created internal TestFlight group '#{INTERNAL_GROUP}' with access to all builds")
     end
 

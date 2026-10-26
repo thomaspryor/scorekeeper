@@ -1,7 +1,9 @@
 name: iOS Release
 
-# Builds Scorekeep, uploads it to TestFlight, pushes the App Store listing and
-# screenshots, and (when submit_for_review is true) sends it to App Review.
+# Default run: builds Scorekeep, uploads it to TestFlight, pushes the App Store
+# listing and screenshots. The owner then installs that build from TestFlight.
+# Submit run (submit_for_review + tested_build): submits that exact tested build
+# to App Review without rebuilding.
 # Run from the Actions tab or the GitHub MCP tools; never needs a Mac.
 #
 # Needs one repository secret: ASC_API_KEY_P8 (the App Store Connect API key's
@@ -13,9 +15,13 @@ on:
   workflow_dispatch:
     inputs:
       submit_for_review:
-        description: 'Submit this build for App Review after uploading (otherwise TestFlight + listing only)'
+        description: 'Submit an already-tested TestFlight build for App Review (needs tested_build)'
         type: boolean
         default: false
+      tested_build:
+        description: 'Build number the owner installed from TestFlight and approved. Required to submit; that exact build is submitted and nothing is rebuilt.'
+        type: string
+        default: ''
 
 concurrency:
   group: ios-release
@@ -34,6 +40,18 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v5
+
+      # Apple reviews exactly what the owner tested: submitting never builds a
+      # new binary, it submits the TestFlight build the owner approved.
+      - name: Submitting requires a build the owner tested
+        if: inputs.submit_for_review
+        env:
+          TESTED_BUILD: ${{ inputs.tested_build }}
+        run: |
+          if ! [[ "$TESTED_BUILD" =~ ^[0-9]+$ ]]; then
+            echo "::error::submit_for_review needs tested_build: the TestFlight build number the owner installed and approved."
+            exit 1
+          fi
 
       - name: Check the App Store Connect key is configured
         env:
@@ -72,19 +90,27 @@ jobs:
         run: fastlane preflight
 
       - name: Version and build number
+        env:
+          TESTED_BUILD: ${{ inputs.tested_build }}
         run: |
           VERSION="$(awk -F'"' '/MARKETING_VERSION/{print $2; exit}' ios/project.yml)"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "BUILD_NUMBER=${{ github.run_number }}" >> "$GITHUB_ENV"
-          echo "Releasing $VERSION (${{ github.run_number }})"
+          if [ "${{ inputs.submit_for_review }}" = "true" ]; then
+            echo "BUILD_NUMBER=$TESTED_BUILD" >> "$GITHUB_ENV"
+          else
+            echo "BUILD_NUMBER=${{ github.run_number }}" >> "$GITHUB_ENV"
+          fi
+          echo "Releasing $VERSION ($(grep '^BUILD_NUMBER=' "$GITHUB_ENV" | tail -1 | cut -d= -f2))"
 
       - name: Run tests before shipping
+        if: ${{ !inputs.submit_for_review }}
         run: |
           UDID="$(python3 ios/scripts/find_simulator.py 'iPhone [0-9]+ Pro')"
           xcodebuild test -project ios/Scorekeep.xcodeproj -scheme Scorekeep \
             -destination "id=$UDID" -quiet CODE_SIGNING_ALLOWED=NO
 
       - name: Archive
+        if: ${{ !inputs.submit_for_review }}
         run: |
           # Unsigned archive; the export step signs it with a cloud-managed
           # distribution certificate through the API key.
@@ -99,6 +125,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO
 
       - name: Export signed .ipa
+        if: ${{ !inputs.submit_for_review }}
         run: |
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -126,6 +153,7 @@ jobs:
           echo "IPA=$RUNNER_TEMP/export/Scorekeep.ipa" >> "$GITHUB_ENV"
 
       - name: Upload to TestFlight and wait for processing
+        if: ${{ !inputs.submit_for_review }}
         working-directory: ios
         run: fastlane beta ipa:"$IPA"
 
@@ -149,7 +177,9 @@ jobs:
         run: |
           {
             echo "### Scorekeep $VERSION ($BUILD_NUMBER)"
-            echo "- Uploaded to TestFlight"
+            if [ "${{ inputs.submit_for_review }}" != "true" ]; then
+              echo "- Uploaded to TestFlight: install it from the TestFlight app and try it before submitting"
+            fi
             echo "- Listing and screenshots pushed"
             if [ "${{ inputs.submit_for_review }}" = "true" ]; then
               echo "- Submitted for App Review (releases automatically once approved)"

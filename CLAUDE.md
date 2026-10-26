@@ -61,8 +61,11 @@ When wrapping up, name the best next task. Don't just say "done".
   `co.scorekeep.app`, team `2837Q6TK6Y`. Setup, secrets, review answers and
   release history: `memory/app-store.md`.
 - **One release per session, at the end.** Batch fixes, ship once.
-- TestFlight builds need no owner sign-off. **App Store submission needs the
-  owner's go-ahead** (bump `MARKETING_VERSION` in `ios/project.yml` first).
+- TestFlight builds need no owner sign-off. **Never submit to App Review until
+  the owner has installed the build from TestFlight and said it works.** Ask
+  them to test a specific build number; submit with `tested_build=<that number>`
+  (the workflow refuses without it and submits that exact build, no rebuild).
+  Bump `MARKETING_VERSION` in `ios/project.yml` for each new App Store version.
 
 ## Design
 - Dark UI, black background. Player rows are full-bleed bars in the player's

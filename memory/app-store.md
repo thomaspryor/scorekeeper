@@ -13,9 +13,14 @@
 
 ## How to ship
 Dispatch `ios-release.yml` (GitHub MCP `actions_run_trigger`, or the Actions tab):
-- `submit_for_review=false`: TestFlight build + listing + screenshots.
-- `submit_for_review=true`: same, then submits for review with automatic release.
-The workflow re-runs all tests first and fails with a clear message when setup is missing.
+- Default: runs the tests, builds, uploads to TestFlight, pushes listing + screenshots.
+  Then ask the owner to install that build number from TestFlight and try it.
+- `submit_for_review=true tested_build=<N>`: only after the owner approved build N.
+  Skips building, pushes listing + screenshots and submits build N with automatic
+  release. Refuses without tested_build.
+The owner reaches builds through the internal TestFlight group in App Store Connect.
+2026-10-26: a submission was started before the owner had tried the app; they
+stopped it ("I haven't even played with this app"). That is why tested_build exists.
 
 Only the submit run attaches the build to the version (a listing-only run leaves
 "Add Build" on the version page). The listing lane also answers the content rights

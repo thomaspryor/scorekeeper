@@ -161,9 +161,16 @@ private struct ConfettiView: View {
             .opacity(faded ? 0 : 1)
         }
         .onAppear {
-            // easeIn reads as gravity: slow at the top, faster as pieces fall.
-            withAnimation(.easeIn(duration: Self.duration)) { falling = true }
-            withAnimation(.linear(duration: 0.6).delay(Self.duration - 0.6)) { faded = true }
+            // Simulator screenshot capture can outlast the three-second celebration.
+            // Keep the screenshot demo moving; real games retain the finite effect.
+            let screenshotDemo = DemoScenario.current == .celebration
+            let fall = Animation.easeIn(duration: Self.duration)
+            withAnimation(screenshotDemo ? fall.repeatForever(autoreverses: false) : fall) {
+                falling = true
+            }
+            if !screenshotDemo {
+                withAnimation(.linear(duration: 0.6).delay(Self.duration - 0.6)) { faded = true }
+            }
         }
     }
 }

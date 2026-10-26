@@ -1,1 +1,1 @@
-counter,board game,card game,points,tally,scoreboard,game night,tracker,party,family,dice,darts,golf
+counter,scoreboard,card,board,game,night,points,tally,keeping,darts,trivia,golf,family,party,count

@@ -1,7 +1,9 @@
 # App Store: Scorekeep
 
-- App: **Scorekeep: Game Score Keeper** (home screen name "Scorekeep"; several
-  "ScoreKeep ..." apps already exist, so the bare name is likely taken)
+- App: **Scorekeep: Score Tracker**, subtitle "Simple Score Keeper, No Ads"
+  (home screen name "Scorekeep"). Chosen by the owner 2026-10-26 from App Store
+  search suggestions ("score keeper" and "score tracker" lead) plus GPT-4o and
+  Gemini input. Owner rejected "Game Score Keeper" as an awkward phrase.
 - Bundle ID `co.scorekeep.app`, team `2837Q6TK6Y`, version in `ios/project.yml`
   (`MARKETING_VERSION`), build number = `ios-release.yml` run number.
 - Listing text: `ios/fastlane/metadata/` (pushed on every release). Screenshots are
@@ -25,7 +27,7 @@ If export fails on signing, check the key's role first.
 These can't be done through Apple's API with an API key:
 1. GitHub secret `ASC_API_KEY_P8` on this repo = contents of `AuthKey_7MPPJ2254M.p8`
    (same key BroadwayScorecard-app uses). Key ID and issuer ID default in the workflow.
-2. App Store Connect > Apps > + > New App: iOS, name above, English (U.S.),
+2. App Store Connect > Apps > + > New App (done 2026-10-26 as "ScoreKeep App"; the release renames it): iOS, English (U.S.),
    bundle ID `co.scorekeep.app` (the release workflow registers it if missing),
    SKU `scorekeep`.
 3. App Privacy: "No, we do not collect data from this app".

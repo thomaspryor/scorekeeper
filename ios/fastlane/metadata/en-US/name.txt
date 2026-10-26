@@ -1,1 +1,1 @@
-Scorekeep: Game Score Keeper
+Scorekeep: Score Tracker

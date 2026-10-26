@@ -65,13 +65,19 @@ platform :ios do
     UI.user_error!("No Account Holder or Admin users found in App Store Connect") if owners.empty?
 
     owners.each do |user|
-      if already.include?(user.email.to_s.downcase)
+      # App Store Connect users carry their Apple ID in `username`; `email` is often empty.
+      email = [user.email, user.username].map(&:to_s).find { |value| value.include?("@") }
+      unless email
+        UI.important("Skipping #{user.first_name} #{user.last_name}: no email on the account")
+        next
+      end
+      if already.include?(email.downcase)
         UI.message("#{user.first_name} is already a tester")
         next
       end
       Spaceship::ConnectAPI.post_beta_tester_assignment(
         beta_group_ids: [group.id],
-        attributes: { email: user.email, firstName: user.first_name, lastName: user.last_name }
+        attributes: { email: email, firstName: user.first_name, lastName: user.last_name }
       )
       UI.success("Added #{user.first_name} #{user.last_name} to TestFlight group '#{INTERNAL_GROUP}'")
     end

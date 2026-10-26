@@ -1,1 +1,1 @@
-Score tracker for game night
+Simple Score Keeper, No Ads

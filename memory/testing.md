@@ -53,6 +53,11 @@ committed project byte for byte. It needs `USER` set (`USER=ci xcodegen generate
   `@MainActor` class crashes when the notification posts off the main thread
   (AVAudioSession route changes do). Use block observers on `.main` +
   `MainActor.assumeIsolated`.
+- **Silent switch:** `.ambient` (iOS) and Safari's default Web Audio both go
+  quiet when the ring/silent switch is on silent, whatever the volume. The first
+  TestFlight tester heard nothing on either app. Both now use playback (iOS
+  `.playback` + `.mixWithOthers`, web `navigator.audioSession.type`); the in-app
+  Sound button is the control. Guarded by a unit test and the web smoke test.
 - **Gesture cancellation:** `DragGesture.onEnded` does not run when the system
   cancels a touch (a scroll takes over). Anything that must stop on release
   (timers) also needs `@GestureState` + `onDisappear`.

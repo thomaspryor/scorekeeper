@@ -38,6 +38,13 @@ page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
 try {
   // Skip the one-time gesture hints overlay; it covers the score buttons.
   await page.addInitScript(() => localStorage.setItem('scorekeeper-hints-shown', '1'));
+  // Stand in for Safari's audio session and count the tones the app starts.
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'audioSession', { value: { type: 'auto' } });
+    window.__tones = 0;
+    const create = AudioContext.prototype.createOscillator;
+    AudioContext.prototype.createOscillator = function () { window.__tones++; return create.call(this); };
+  });
   await page.goto(`${base}/index.html`);
 
   // Type the name immediately: the modal used to clear the field 100ms after opening.
@@ -52,6 +59,10 @@ try {
 
   const plus = page.locator('.player-row').first().locator('button:has-text("+")').first();
   await plus.click();
+  await page.waitForTimeout(200);
+  check(await page.evaluate(() => window.__tones) > 0, 'the first tap plays a sound');
+  check(await page.evaluate(() => navigator.audioSession.type) === 'playback',
+    'sound ignores the iPhone silent switch (audioSession playback)');
   await plus.click();
   const firstScore = await page.locator('.player-row').first().locator('.player-score, .score').first().textContent();
   check(firstScore?.includes('2'), `two taps add 2 (${firstScore?.trim()})`);

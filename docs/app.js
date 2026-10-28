@@ -98,6 +98,14 @@
 
   function ensureAudio() {
     if (!audioContext) {
+      // Safari mutes Web Audio when the ring/silent switch is on silent, even with
+      // the volume up. 'playback' (Safari 17+) plays anyway: the Sound button is
+      // the control. Other browsers have no navigator.audioSession.
+      try {
+        if (navigator.audioSession) navigator.audioSession.type = 'playback';
+      } catch (e) {
+        // Not supported
+      }
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
     if (audioContext.state === 'suspended') {
@@ -112,6 +120,18 @@
       source.start(0);
       audioUnlocked = true;
     }
+  }
+
+  // True when sounds can play now. The first tap finds the context suspended;
+  // instead of dropping that tap's sound, replay it once resume() finishes.
+  function audioReady(retry) {
+    ensureAudio();
+    if (!audioContext) return false;
+    if (audioContext.state === 'running') return true;
+    audioContext.resume().then(() => {
+      if (audioContext.state === 'running') retry();
+    }, () => {});
+    return false;
   }
 
   function initAudio() {
@@ -498,9 +518,7 @@
 
   // Celebration fanfare sound
   function playCelebrationSound() {
-    if (!state.soundEnabled) return;
-    ensureAudio();
-    if (!audioContext || audioContext.state !== 'running') return;
+    if (!state.soundEnabled || !audioReady(playCelebrationSound)) return;
 
     try {
       const now = audioContext.currentTime;
@@ -1082,9 +1100,7 @@
 
   // Sound
   function playSound() {
-    if (!state.soundEnabled) return;
-    ensureAudio();
-    if (!audioContext || audioContext.state !== 'running') return;
+    if (!state.soundEnabled || !audioReady(playSound)) return;
 
     try {
       const oscillator = audioContext.createOscillator();
@@ -1104,9 +1120,7 @@
 
   // Ta-dah sound for sort
   function playSortSound() {
-    if (!state.soundEnabled) return;
-    ensureAudio();
-    if (!audioContext || audioContext.state !== 'running') return;
+    if (!state.soundEnabled || !audioReady(playSortSound)) return;
 
     try {
       const now = audioContext.currentTime;

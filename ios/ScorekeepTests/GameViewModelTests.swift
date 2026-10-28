@@ -1,3 +1,4 @@
+import AVFoundation
 import XCTest
 @testable import Scorekeep
 
@@ -368,5 +369,17 @@ final class GameViewModelTests: XCTestCase {
             XCTAssertEqual(vm.loadHistory().count, DemoScenario.sampleHistory.count)
             XCTAssertEqual(vm.celebration != nil, scenario == .celebration)
         }
+    }
+
+    // MARK: - Sound
+
+    /// The .ambient category obeyed the silent switch, so a phone on silent heard
+    /// nothing even with the volume up. The in-app Sound button is the control.
+    func testSoundPlaysWithTheSilentSwitchOnAndMixesWithMusic() throws {
+        XCTAssertEqual(SoundManager.sessionCategory, .playback)
+        XCTAssertTrue(SoundManager.sessionOptions.contains(.mixWithOthers))
+        try SoundManager.shared.configureSession()
+        XCTAssertEqual(AVAudioSession.sharedInstance().category, .playback)
+        XCTAssertTrue(AVAudioSession.sharedInstance().categoryOptions.contains(.mixWithOthers))
     }
 }

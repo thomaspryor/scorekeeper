@@ -69,12 +69,21 @@ final class SoundManager {
 
     // MARK: - Setup
 
+    /// .playback plays even with the ring/silent switch on silent: the in-app Sound
+    /// button is the control. (.ambient obeyed the switch, so testers heard nothing.)
+    /// .mixWithOthers keeps music from other apps playing underneath.
+    static let sessionCategory: AVAudioSession.Category = .playback
+    static let sessionOptions: AVAudioSession.CategoryOptions = [.mixWithOthers]
+
+    func configureSession() throws {
+        try AVAudioSession.sharedInstance().setCategory(Self.sessionCategory, options: Self.sessionOptions)
+    }
+
     private func ensureSetup() {
         guard !isSetUp else { return }
 
         do {
-            // .ambient mixes with other apps' audio and respects the silent switch
-            try AVAudioSession.sharedInstance().setCategory(.ambient, options: .mixWithOthers)
+            try configureSession()
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
             return

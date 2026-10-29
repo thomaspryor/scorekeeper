@@ -48,6 +48,19 @@ final class ScorekeepUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["LEO"].exists)
         app.buttons["Back"].tap()
         XCTAssertTrue(app.staticTexts["LEO score 4"].waitForExistence(timeout: 5))
+
+        // Holding + counts fast, and the counting stops when the finger lifts.
+        addToLeo.press(forDuration: 1.5)
+        let afterHold = leoScore(in: app)
+        XCTAssertGreaterThan(afterHold, 6, "holding + should repeat")
+        sleep(1)
+        XCTAssertEqual(leoScore(in: app), afterHold, "the score kept counting after release")
+    }
+
+    @MainActor
+    private func leoScore(in app: XCUIApplication) -> Int {
+        let label = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'LEO score '")).firstMatch.label
+        return Int(label.replacingOccurrences(of: "LEO score ", with: "")) ?? -1
     }
 
     @MainActor

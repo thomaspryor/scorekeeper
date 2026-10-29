@@ -174,7 +174,10 @@ private struct ScoreButton: View {
         repeatTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(350))
             var count = 0
-            while !Task.isCancelled {
+            // Re-check the finger every step: a touch the system cancels within one
+            // frame fires neither onEnded nor onChange(of: isPressing), and the
+            // score would count up forever (seen in CI: four taps ended at 36).
+            while !Task.isCancelled && isPressing {
                 didRepeat = true
                 action(delta)
                 count += 1

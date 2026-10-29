@@ -54,6 +54,22 @@ final class GameViewModel {
     static let stateKey = "scorekeeper-state"
     static let historyKey = "scorekeeper-history"
     static let maxHistory = 50
+    static let hintsKey = "scorekeeper-hints-shown"
+
+    // MARK: - First-run gesture tips
+    /// The one-time tips overlay (swipe, drag, shake, hold). Like the web app, it
+    /// appears once a game has two players and never again after "Got it".
+    private(set) var showHints = false
+
+    func offerHintsIfNeeded() {
+        guard players.count >= 2, !store.bool(forKey: Self.hintsKey) else { return }
+        showHints = true
+    }
+
+    func dismissHints() {
+        showHints = false
+        store.set(true, forKey: Self.hintsKey)
+    }
 
     // MARK: - Toast
     var toastMessage: String?

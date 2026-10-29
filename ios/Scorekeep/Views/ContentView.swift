@@ -45,6 +45,16 @@ struct ContentView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .animation(.spring(duration: 0.3), value: viewModel.toastMessage)
             }
+
+            if viewModel.showHints {
+                GestureHintsView {
+                    HapticManager.light()
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        viewModel.dismissHints()
+                    }
+                }
+                .transition(.opacity)
+            }
         }
         .background(.black)
         .preferredColorScheme(.dark)
@@ -85,17 +95,27 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .deviceDidShake)) { _ in
             // Don't undo behind an open sheet (e.g. removing the player being named)
             let sheetOpen = showEditSheet || showIncrementPicker || showNewGameSheet
-                || showPastGames || viewModel.celebration != nil
+                || showPastGames || viewModel.celebration != nil || viewModel.showHints
             if !sheetOpen && viewModel.canUndo {
                 HapticManager.medium()
                 viewModel.undo()
                 viewModel.showToast("Shake undo!")
             }
         }
+        // Tips wait until the second player's name sheet closes, so they never
+        // cover the keyboard.
+        .onChange(of: showEditSheet) { _, isOpen in
+            if !isOpen {
+                withAnimation(.easeIn(duration: 0.3)) {
+                    viewModel.offerHintsIfNeeded()
+                }
+            }
+        }
         .onAppear {
             if demo == .history {
                 showPastGames = true
             }
+            viewModel.offerHintsIfNeeded()
         }
     }
 
@@ -296,6 +316,82 @@ struct ContentView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel ?? label)
+    }
+}
+
+// MARK: - First-run tips
+
+/// One-time overlay explaining the gestures that have no visible button.
+/// Same tips as the web app's "Quick Tips".
+private struct GestureHintsView: View {
+    let onDismiss: () -> Void
+
+    private struct Hint {
+        let icon: String
+        /// Palette color behind the icon; nil for the neutral gray.
+        let color: String?
+        let title: String
+        let detail: String
+    }
+
+    private let hints = [
+        Hint(icon: "arrow.right", color: "#0074D9", title: "Swipe right", detail: "Edit a player's name and color"),
+        Hint(icon: "arrow.left", color: "#FF4136", title: "Swipe left", detail: "Delete a player"),
+        Hint(icon: "arrow.up.arrow.down", color: nil, title: "Hold and drag", detail: "Reorder players"),
+        Hint(icon: "iphone.gen3.radiowaves.left.and.right", color: nil, title: "Shake your phone", detail: "Undo the last change"),
+        Hint(icon: "plus.forwardslash.minus", color: nil, title: "Hold + or −", detail: "Change the score fast"),
+    ]
+
+    var body: some View {
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(spacing: 24) {
+                    Text("Quick Tips")
+                        .font(.title2.weight(.bold))
+                        .textCase(.uppercase)
+                        .accessibilityAddTraits(.isHeader)
+
+                    ForEach(hints, id: \.title) { hint in
+                        HStack(spacing: 16) {
+                            Image(systemName: hint.icon)
+                                .font(.title3.weight(.semibold))
+                                .frame(width: 48, height: 48)
+                                .background(
+                                    hint.color.map(ColorPalette.color(from:)) ?? Color.white.opacity(0.15),
+                                    in: RoundedRectangle(cornerRadius: 12)
+                                )
+                                .accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(hint.title).font(.headline)
+                                Text(hint.detail).font(.subheadline).foregroundStyle(.white.opacity(0.75))
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
+
+                    Button(action: onDismiss) {
+                        Text("Got it")
+                            .font(.headline)
+                            .foregroundStyle(.black)
+                            .frame(maxWidth: .infinity, minHeight: 50)
+                            .background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    }
+                    .padding(.top, 8)
+                    .accessibilityHint("Closes the tips. They won't show again.")
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: 340)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 32)
+                .frame(maxWidth: .infinity, minHeight: geometry.size.height)
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        }
+        .background(Color.black.opacity(0.92).ignoresSafeArea())
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onDismiss)
+        .accessibilityAddTraits(.isModal)
     }
 }
 

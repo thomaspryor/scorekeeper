@@ -17,7 +17,15 @@ final class ScorekeepUITests: XCTestCase {
         addName("MAYA", in: app)
 
         app.buttons["Add player"].firstMatch.tap()
-        addName("LEO", in: app)
+        // The tips cover the list (and hide it from VoiceOver), so check for LEO after them.
+        addName("LEO", in: app, waitForRow: false)
+
+        // First run: the tips appear once there are two players, and "Got it" closes them.
+        let gotIt = app.buttons["Got it"]
+        XCTAssertTrue(gotIt.waitForExistence(timeout: 5))
+        gotIt.tap()
+        XCTAssertTrue(gotIt.waitForNonExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["LEO"].waitForExistence(timeout: 5))
 
         let addToMaya = app.buttons["Add 1 to MAYA"]
         XCTAssertTrue(addToMaya.waitForExistence(timeout: 5))
@@ -40,15 +48,30 @@ final class ScorekeepUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["LEO"].exists)
         app.buttons["Back"].tap()
         XCTAssertTrue(app.staticTexts["LEO score 4"].waitForExistence(timeout: 5))
+
+        // Holding + counts fast, and the counting stops when the finger lifts.
+        addToLeo.press(forDuration: 1.5)
+        let afterHold = leoScore(in: app)
+        XCTAssertGreaterThan(afterHold, 6, "holding + should repeat")
+        sleep(1)
+        XCTAssertEqual(leoScore(in: app), afterHold, "the score kept counting after release")
     }
 
     @MainActor
-    private func addName(_ name: String, in app: XCUIApplication) {
+    private func leoScore(in app: XCUIApplication) -> Int {
+        let label = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'LEO score '")).firstMatch.label
+        return Int(label.replacingOccurrences(of: "LEO score ", with: "")) ?? -1
+    }
+
+    @MainActor
+    private func addName(_ name: String, in app: XCUIApplication, waitForRow: Bool = true) {
         let field = app.textFields["playerNameField"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap()
         // Return submits the sheet (the keyboard's key is also labeled "Done").
         field.typeText(name + "\n")
-        XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 5))
+        if waitForRow {
+            XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 5))
+        }
     }
 }

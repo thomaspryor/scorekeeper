@@ -61,6 +61,9 @@ committed project byte for byte. It needs `USER` set (`USER=ci xcodegen generate
 - **Gesture cancellation:** `DragGesture.onEnded` does not run when the system
   cancels a touch (a scroll takes over). Anything that must stop on release
   (timers) also needs `@GestureState` + `onDisappear`.
+  Even that misses a touch cancelled within one frame (neither fires), so the
+  hold-repeat loop also checks `isPressing` each step. The UI test holds + and
+  checks the score stops after release.
 - **Codable all-or-nothing:** a synthesized decoder fails the whole save when one
   key is missing, which wipes the user's game on update. Persisted types decode
   every field with a default; add a test for each migration.

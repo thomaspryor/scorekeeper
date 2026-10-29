@@ -50,6 +50,11 @@ enum DemoScenario: String {
         let suite = "scorekeep-demo"
         let store = UserDefaults(suiteName: suite) ?? .standard
         store.removePersistentDomain(forName: suite)
+        // Screenshots show the scoreboard, not the tips. The empty scenario keeps
+        // them so the UI test walks through the real first run.
+        if self != .empty {
+            store.set(true, forKey: GameViewModel.hintsKey)
+        }
         if self == .empty {
             return GameViewModel(store: store, effects: false)
         }

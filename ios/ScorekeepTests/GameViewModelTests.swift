@@ -360,6 +360,34 @@ final class GameViewModelTests: XCTestCase {
         XCTAssertTrue(vm.loadHistory().isEmpty)
     }
 
+    // MARK: - First-run tips
+
+    func testTipsAppearOnceTheGameHasTwoPlayers() {
+        let vm = makeViewModel()
+        seed(vm, [("MAYA", 0)])
+        vm.offerHintsIfNeeded()
+        XCTAssertFalse(vm.showHints, "one player: nothing to swipe or reorder yet")
+        seed(vm, [("LEO", 0)])
+        vm.offerHintsIfNeeded()
+        XCTAssertTrue(vm.showHints)
+    }
+
+    func testTipsNeverReturnAfterGotIt() {
+        let store = freshStore()
+        let vm = makeViewModel(store)
+        seed(vm, [("MAYA", 0), ("LEO", 0)])
+        vm.offerHintsIfNeeded()
+        vm.dismissHints()
+        XCTAssertFalse(vm.showHints)
+        vm.offerHintsIfNeeded()
+        XCTAssertFalse(vm.showHints)
+
+        vm.saveNow()
+        let relaunched = makeViewModel(store)
+        relaunched.offerHintsIfNeeded()
+        XCTAssertFalse(relaunched.showHints, "dismissal survives a relaunch")
+    }
+
     // MARK: - Demo data used for screenshots
 
     func testDemoScenariosLoadWithoutTouchingTheRealStore() {
@@ -368,6 +396,8 @@ final class GameViewModelTests: XCTestCase {
             XCTAssertEqual(vm.players.count, DemoScenario.samplePlayers.count)
             XCTAssertEqual(vm.loadHistory().count, DemoScenario.sampleHistory.count)
             XCTAssertEqual(vm.celebration != nil, scenario == .celebration)
+            vm.offerHintsIfNeeded()
+            XCTAssertFalse(vm.showHints, "tips would cover the \(scenario) screenshot")
         }
     }
 

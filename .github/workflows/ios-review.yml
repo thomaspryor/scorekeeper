@@ -1,0 +1,45 @@
+name: iOS App Review status
+
+# Read-only report of where the App Store submission stands: version state,
+# review submissions, the review notes on file and any attachments. Apple's
+# messages to the developer (the "issue with your submission" text) are not in
+# the App Store Connect API; read those in App Store Connect.
+
+on:
+  workflow_dispatch:
+
+env:
+  ASC_KEY_ID: ${{ secrets.ASC_API_KEY_ID || '7MPPJ2254M' }}
+  ASC_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID || '2d03cc88-e016-4fb7-8d89-a70a4a912875' }}
+  LC_ALL: en_US.UTF-8
+  LANG: en_US.UTF-8
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Write the App Store Connect key
+        env:
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: |
+          if [ -z "$ASC_API_KEY_P8" ]; then
+            echo "::error::Missing repository secret ASC_API_KEY_P8. See memory/app-store.md."
+            exit 1
+          fi
+          mkdir -p "$HOME/private_keys"
+          printf '%s\n' "$ASC_API_KEY_P8" > "$HOME/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          echo "ASC_KEY_PATH=$HOME/private_keys/AuthKey_${ASC_KEY_ID}.p8" >> "$GITHUB_ENV"
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install fastlane
+        run: gem install fastlane --no-document
+
+      - name: Report App Review status
+        working-directory: ios
+        run: fastlane review_status

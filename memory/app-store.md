@@ -20,6 +20,10 @@ Dispatch `ios-release.yml` (GitHub MCP `actions_run_trigger`, or the Actions tab
 - `submit_for_review=true tested_build=<N>`: only after the owner approved build N.
   Skips building, pushes listing + screenshots and submits build N with automatic
   release. Refuses without tested_build.
+`ios-review.yml` (manual, read-only): version state, review submissions, review
+notes and attachments. Apple's own messages are not in the API; read them in App
+Store Connect or the owner's email.
+
 The owner reaches builds through the internal TestFlight group "Owner" (every
 build, automatic). `ios-testflight-access.yml` creates it and adds the account
 holder and admins; re-run it if a new admin needs builds.

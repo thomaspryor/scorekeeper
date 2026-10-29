@@ -67,4 +67,5 @@ These can't be done through Apple's API with an API key:
 | Version | Build | Date | Notes |
 |---|---|---|---|
 | 1.0.0 | 2, 4, 5 | 2026-10-26 | TestFlight builds; listing + screenshots pushed. Submit failed on missing content rights (fixed) |
-| 1.0.0 | 7 | 2026-10-28 | TestFlight. Owner tested earlier build: all good except no sound (silent switch). Fixed in PR #10; awaiting owner test of build 7 before submit |
+| 1.0.0 | 7 | 2026-10-28 | TestFlight. Owner tested earlier build: all good except no sound (silent switch). Fixed in PR #10. Owner tested build 7 (sound works) |
+| 1.0.0 | 7 | 2026-10-29 | Submitted for App Review (release run 8, automatic release). Review notes not set; support page links to GitHub issues only |

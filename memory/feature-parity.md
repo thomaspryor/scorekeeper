@@ -12,13 +12,16 @@
 | Trash talk bar | yes | yes (1.0) |
 | Save / load / delete past games | yes | yes |
 | Drag to reorder | yes | yes |
-| Gesture hints on first use | yes | no |
+| Gesture hints on first use | yes | yes (1.0.1) |
 | Install banner (PWA) | yes | n/a |
 | Offline (service worker) | no | n/a (native) |
+
+Gesture tips: same five tips and trigger (second player added, once) in
+`docs/app.js` (showGestureHints) and `ContentView.swift` (GestureHintsView).
+Change both together.
 
 Trash talk lines live in both `docs/app.js` (TRASH_TALK) and
 `ios/Scorekeep/Logic/TrashTalk.swift`. Change both together.
 
 ## Gaps worth doing
-- P2: iOS first-run gesture hints (web shows them once).
 - P2: web service worker for true offline use (CLAUDE.md used to claim it existed).

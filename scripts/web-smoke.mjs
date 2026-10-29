@@ -96,6 +96,11 @@ try {
     check(width <= 390, `${path} has no horizontal scroll (${width}px)`);
   }
 
+  // App Review needs a contact anyone can use, not one behind a GitHub login.
+  await page.goto(`${base}/support.html`);
+  const contact = await page.getAttribute('a.button', 'href');
+  check(contact?.startsWith('mailto:'), `support page has an email contact (${contact})`);
+
   check(errors.length === 0, `no console errors ${errors.length ? JSON.stringify(errors) : ''}`);
 } finally {
   await browser.close();

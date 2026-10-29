@@ -9,6 +9,8 @@
 - Listing text: `ios/fastlane/metadata/` (pushed on every release). Screenshots are
   generated fresh by each release, never committed.
 - Privacy URL https://scorekeep.co/privacy.html, support URL https://scorekeep.co/support.html
+- Support contact on support.html: tom@broadwayscorecard.com (owner's choice until a
+  Scorekeep address exists; never the owner's personal address). Smoke test requires a mailto.
   (both in `docs/`, so they deploy with the website).
 
 ## How to ship

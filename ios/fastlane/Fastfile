@@ -132,7 +132,8 @@ platform :ios do
     app = Spaceship::ConnectAPI::App.find(BUNDLE_ID)
     UI.user_error!("No App Store Connect app for #{BUNDLE_ID}") unless app
 
-    version = app.get_app_store_versions(limit: 1, sort: "-createdDate", includes: "build").first
+    # The versions endpoint rejects `sort`, so pick the newest here.
+    version = app.get_app_store_versions(includes: "build").max_by { |v| v.created_date.to_s }
     UI.user_error!("No App Store version yet") unless version
     UI.message("Version #{version.version_string}: #{version.app_version_state || version.app_store_state}")
     UI.message("Build attached: #{version.build&.version || 'none'}")

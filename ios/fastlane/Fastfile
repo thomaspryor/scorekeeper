@@ -124,4 +124,37 @@ platform :ios do
       }
     )
   end
+
+  desc "Read-only: the App Review state, review notes and attachments for the newest version"
+  lane :review_status do
+    # Logs of this public repo are public: never print the review contact's
+    # name, phone or email, only state, notes and attachment names.
+    app = Spaceship::ConnectAPI::App.find(BUNDLE_ID)
+    UI.user_error!("No App Store Connect app for #{BUNDLE_ID}") unless app
+
+    version = app.get_app_store_versions(limit: 1, sort: "-createdDate", includes: "build").first
+    UI.user_error!("No App Store version yet") unless version
+    UI.message("Version #{version.version_string}: #{version.app_version_state || version.app_store_state}")
+    UI.message("Build attached: #{version.build&.version || 'none'}")
+
+    begin
+      app.get_review_submissions(includes: "items").first(3).each do |submission|
+        UI.message("Review submission #{submission.id}: #{submission.state} (submitted #{submission.submitted_date || '-'}, #{submission.items&.size || 0} items)")
+      end
+    rescue => e
+      UI.important("Could not read review submissions: #{e.message}")
+    end
+
+    begin
+      detail = version.fetch_app_store_review_detail(includes: "appStoreReviewAttachments")
+      notes = detail.notes.to_s
+      UI.message("Review notes (#{notes.length} chars):")
+      puts(notes.empty? ? "  (none)" : notes)
+      UI.message("Demo account required: #{detail.demo_account_required.inspect}")
+      attachments = detail.app_store_review_attachments || []
+      UI.message("Review attachments: #{attachments.empty? ? 'none' : attachments.map { |a| "#{a.file_name} (#{a.asset_delivery_state&.dig('state') || 'unknown'})" }.join(', ')}")
+    rescue => e
+      UI.important("Could not read the review details: #{e.message}")
+    end
+  end
 end

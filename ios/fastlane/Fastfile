@@ -193,7 +193,7 @@ platform :ios do
     client = Spaceship::ConnectAPI.client.tunes_request_client
     begin
       (submission.items || []).each do |item|
-        client.patch("reviewSubmissionItems/#{item.id}", {
+        client.patch("v1/reviewSubmissionItems/#{item.id}", {
           data: { type: "reviewSubmissionItems", id: item.id, attributes: { resolved: true } }
         })
         UI.message("Marked item #{item.id} resolved")

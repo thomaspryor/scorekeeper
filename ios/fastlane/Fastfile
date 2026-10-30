@@ -158,4 +158,37 @@ platform :ios do
       UI.important("Could not read the review details: #{e.message}")
     end
   end
+
+  desc "Attach a file (the device recording) to App Review, update the notes, optionally resubmit"
+  lane :review_reply do |options|
+    path = options.fetch(:attachment)
+    UI.user_error!("No file at #{path}") unless File.exist?(path)
+    app = Spaceship::ConnectAPI::App.find(BUNDLE_ID)
+    version = app.get_app_store_versions(includes: "build").max_by { |v| v.created_date.to_s }
+    detail = version.fetch_app_store_review_detail(includes: "appStoreReviewAttachments")
+
+    name = File.basename(path)
+    if (detail.app_store_review_attachments || []).any? { |a| a.file_name == name }
+      UI.message("#{name} is already attached")
+    else
+      Spaceship::ConnectAPI::AppStoreReviewAttachment.create(app_store_review_detail_id: detail.id, path: path)
+      UI.success("Attached #{name} to the App Review details")
+    end
+
+    pending = "The recording requested in the October 29 review message is pending and will be supplied before resubmission."
+    attached = "A screen recording of the app on a physical iPhone running the latest iOS is attached to this submission (#{name})."
+    notes = detail.notes.to_s
+    if notes.include?(pending)
+      detail.update(attributes: { notes: notes.sub(pending, attached) })
+      UI.success("Review notes now say the recording is attached")
+    elsif !notes.include?(attached)
+      UI.important("Notes do not mention the recording; left them unchanged")
+    end
+
+    next unless options[:submit].to_s == "true"
+    submission = app.get_review_submissions(filter: { state: "UNRESOLVED_ISSUES" }, includes: "items").first
+    UI.user_error!("No review submission with unresolved issues to resubmit") unless submission
+    submission.submit_for_review
+    UI.success("Resubmitted #{submission.id} for App Review")
+  end
 end

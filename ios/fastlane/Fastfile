@@ -188,7 +188,22 @@ platform :ios do
     next unless options[:submit].to_s == "true"
     submission = app.get_review_submissions(filter: { state: "UNRESOLVED_ISSUES" }, includes: "items").first
     UI.user_error!("No review submission with unresolved issues to resubmit") unless submission
-    submission.submit_for_review
+    # After a rejection Apple only accepts the submission again once each item
+    # is marked resolved (what "Resubmit to App Review" does in the web UI).
+    client = Spaceship::ConnectAPI.client.tunes_request_client
+    begin
+      (submission.items || []).each do |item|
+        client.patch("v1/reviewSubmissionItems/#{item.id}", {
+          data: { type: "reviewSubmissionItems", id: item.id, attributes: { resolved: true } }
+        })
+        UI.message("Marked item #{item.id} resolved")
+      end
+      submission.submit_for_review
+    rescue Spaceship::UnexpectedResponse => e
+      # The summary line hides Apple's "associated errors"; print them.
+      UI.error(e.error_info.inspect) if e.respond_to?(:error_info)
+      raise
+    end
     UI.success("Resubmitted #{submission.id} for App Review")
   end
 end

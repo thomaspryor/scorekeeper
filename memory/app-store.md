@@ -22,7 +22,9 @@ Dispatch `ios-release.yml` (GitHub MCP `actions_run_trigger`, or the Actions tab
   release. Refuses without tested_build.
 `ios-review-reply.yml` (manual): takes a Drive file ID (shared "Anyone with the link")
 and a step: check (length + still frames artifact), attach (review attachment + notes),
-submit (also resubmits). Used for Apple's 2026-10-29 request for a device recording.
+submit (also resubmits). Resubmitting after a rejection needs each
+reviewSubmissionItem PATCHed `resolved: true` first (path `v1/reviewSubmissionItems/{id}`),
+else Apple answers "appStoreVersions ... is not in valid state". Used for Apple's 2026-10-29 request for a device recording.
 `ios-review.yml` (manual, read-only): version state, review submissions, review
 notes and attachments. Apple's own messages are not in the API; read them in App
 Store Connect or the owner's email.
@@ -78,3 +80,5 @@ These can't be done through Apple's API with an API key:
 | 1.0.0 | 2, 4, 5 | 2026-10-26 | TestFlight builds; listing + screenshots pushed. Submit failed on missing content rights (fixed) |
 | 1.0.0 | 7 | 2026-10-28 | TestFlight. Owner tested earlier build: all good except no sound (silent switch). Fixed in PR #10. Owner tested build 7 (sound works) |
 | 1.0.0 | 7 | 2026-10-29 | Submitted for App Review (release run 8, automatic release). Review notes not set; support page links to GitHub issues only |
+| 1.0.0 | 7 | 2026-10-29 | App Review: "issue with your submission" (information needed: written answers + physical-device screen recording). Answers saved in review notes |
+| 1.0.0 | 7 | 2026-10-30 | Owner's iPhone recording attached via ios-review-reply.yml; resubmitted, WAITING_FOR_REVIEW |

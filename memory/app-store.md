@@ -20,6 +20,9 @@ Dispatch `ios-release.yml` (GitHub MCP `actions_run_trigger`, or the Actions tab
 - `submit_for_review=true tested_build=<N>`: only after the owner approved build N.
   Skips building, pushes listing + screenshots and submits build N with automatic
   release. Refuses without tested_build.
+`ios-review-reply.yml` (manual): takes a Drive file ID (shared "Anyone with the link")
+and a step: check (length + still frames artifact), attach (review attachment + notes),
+submit (also resubmits). Used for Apple's 2026-10-29 request for a device recording.
 `ios-review.yml` (manual, read-only): version state, review submissions, review
 notes and attachments. Apple's own messages are not in the API; read them in App
 Store Connect or the owner's email.

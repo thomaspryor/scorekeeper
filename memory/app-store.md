@@ -67,6 +67,9 @@ These can't be done through Apple's API with an API key:
 - Update this section if a network call or SDK is ever added.
 
 ## Review risks
+- **Expedited reviews:** free but limited; Apple declines frequent askers. The owner's
+  priority app is BroadwayScorecard-app, so save expedite requests for it. For
+  Scorekeep, wait out the queue (1.0.0 waited 6 days) and check status at most daily.
 - **4.2 Minimum functionality** (BroadwayScorecard-app was rejected under 4.2.2):
   Scorekeep is fully native with haptics, synthesized sound, undo, end-game
   celebration, history and VoiceOver support. Mention these in review notes if asked.
@@ -82,3 +85,4 @@ These can't be done through Apple's API with an API key:
 | 1.0.0 | 7 | 2026-10-29 | Submitted for App Review (release run 8, automatic release). Review notes not set; support page links to GitHub issues only |
 | 1.0.0 | 7 | 2026-10-29 | App Review: "issue with your submission" (information needed: written answers + physical-device screen recording). Answers saved in review notes |
 | 1.0.0 | 7 | 2026-10-30 | Owner's iPhone recording attached via ios-review-reply.yml; resubmitted, WAITING_FOR_REVIEW |
+| 1.0.0 | 7 | 2026-11-05 | Approved and live (6 days after resubmitting): https://apps.apple.com/us/app/scorekeep-score-tracker/id6760328540 |

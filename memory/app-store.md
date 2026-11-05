@@ -86,3 +86,4 @@ These can't be done through Apple's API with an API key:
 | 1.0.0 | 7 | 2026-10-29 | App Review: "issue with your submission" (information needed: written answers + physical-device screen recording). Answers saved in review notes |
 | 1.0.0 | 7 | 2026-10-30 | Owner's iPhone recording attached via ios-review-reply.yml; resubmitted, WAITING_FOR_REVIEW |
 | 1.0.0 | 7 | 2026-11-05 | Approved and live (6 days after resubmitting): https://apps.apple.com/us/app/scorekeep-score-tracker/id6760328540 |
+| 1.0.1 | 9 | 2026-11-05 | TestFlight (first-run tips, hold-to-repeat fix). Awaiting owner test before submit |

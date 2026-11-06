@@ -393,8 +393,8 @@ private struct GestureHintsView: View {
             }
             .scrollBounceBehavior(.basedOnSize)
         }
-        // Nearly opaque: at 0.92 the "Add Player" row showed through behind the tips.
-        .background(Color.black.opacity(0.97).ignoresSafeArea())
+        // Solid: any see-through let the "Add Player" row show behind the tips text.
+        .background(Color.black.ignoresSafeArea())
         .contentShape(Rectangle())
         .onTapGesture(perform: onDismiss)
         .accessibilityAddTraits(.isModal)

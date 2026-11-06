@@ -10,7 +10,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT="${1:-$ROOT/ios/fastlane/screenshots/en-US}"
 DERIVED="${DERIVED_DATA_PATH:-${RUNNER_TEMP:-/tmp}/scorekeep-screenshots-derived}"
 BUNDLE_ID="co.scorekeep.app"
-SCENARIOS=(scoreboard celebration history)
+# Store order: the first screenshot is the one link previews and search results show.
+SCENARIOS=(celebration scoreboard history)
 # Screens checked by eye in CI but never uploaded to the App Store.
 CHECK_SCENARIOS=(tips)
 CHECKS="${CHECKS_DIR:-${RUNNER_TEMP:-/tmp}/screen-checks}"
@@ -80,3 +81,9 @@ for entry in "${DEVICES[@]}"; do
   done
   xcrun simctl shutdown "$udid" || true
 done
+
+# Headline and color frame around each store screenshot (same pixel size).
+VENV="${RUNNER_TEMP:-/tmp}/screenshot-venv"
+[ -x "$VENV/bin/python" ] || python3 -m venv "$VENV"
+"$VENV/bin/pip" install --quiet pillow
+"$VENV/bin/python" "$ROOT/ios/scripts/frame_screenshots.py" "$OUT"

@@ -137,6 +137,13 @@ platform :ios do
     UI.user_error!("No App Store version yet") unless version
     UI.message("Version #{version.version_string}: #{version.app_version_state || version.app_store_state}")
     UI.message("Build attached: #{version.build&.version || 'none'}")
+    begin
+      attrs = Spaceship::ConnectAPI.client.tunes_request_client.get("v1/apps/#{app.id}").body.dig("data", "attributes") || {}
+      UI.message("App attributes: #{attrs.keys.sort.join(', ')}")
+      attrs.each { |k, v| UI.message("  #{k} = #{v.inspect}") if k =~ /mac|silicon|vision|available/i }
+    rescue => e
+      UI.important("Could not read app attributes: #{e.message}")
+    end
 
     begin
       app.get_review_submissions(includes: "items").first(3).each do |submission|

@@ -105,6 +105,15 @@ platform :ios do
       UI.success("Answered content rights: no third-party content")
     end
 
+    # Every update needs "What's New" text or App Review refuses the submission
+    # with a bare "not in valid state" after the slow screenshot upload.
+    submitting = options[:submit] == true || options[:submit] == "true"
+    notes = File.join(FastlaneCore::FastlaneFolder.path, "metadata", "en-US", "release_notes.txt")
+    already_live = app.get_app_store_versions.any? { |v| v.app_store_state == "READY_FOR_SALE" }
+    if submitting && already_live && (!File.exist?(notes) || File.read(notes).strip.empty?)
+      UI.user_error!("Write What's New in ios/fastlane/metadata/en-US/release_notes.txt before submitting an update")
+    end
+
     # The build is attached to the version only when submitting; without
     # submit the version page keeps showing "Add Build".
     deliver(
@@ -115,7 +124,7 @@ platform :ios do
       skip_metadata: false,
       skip_screenshots: false,
       overwrite_screenshots: true,
-      submit_for_review: options[:submit] == true || options[:submit] == "true",
+      submit_for_review: submitting,
       automatic_release: true,
       force: true,
       run_precheck_before_submit: false,

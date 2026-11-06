@@ -1,0 +1,2 @@
+New: the first time you set up a game, quick tips show how to swipe, drag, shake and hold to score.
+Fixed: holding + or − could sometimes keep changing the score after you let go.

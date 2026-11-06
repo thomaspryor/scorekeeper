@@ -40,6 +40,12 @@ Only the submit run attaches the build to the version (a listing-only run leaves
 question ("no third-party content"); App Review rejects a submission without it
 (release run 5, 2026-10-26).
 
+Every update (1.0.1 on) needs "What's New" in `metadata/en-US/release_notes.txt`;
+rewrite it for each version. Without it the submit fails with the same bare "not in
+valid state" (release run 11, 2026-11-06), so the listing lane now refuses early.
+A new version starts with no review attachments even if the notes mention one:
+re-attach with `ios-review-reply.yml` step=attach and check `ios-review.yml`.
+
 ## Signing
 Unsigned archive, then `xcodebuild -exportArchive -allowProvisioningUpdates` with
 the API key signs it with a cloud-managed distribution certificate. That needs an
@@ -88,3 +94,4 @@ These can't be done through Apple's API with an API key:
 | 1.0.0 | 7 | 2026-11-05 | Approved and live (6 days after resubmitting): https://apps.apple.com/us/app/scorekeep-score-tracker/id6760328540 |
 | 1.0.1 | 9 | 2026-11-05 | TestFlight (first-run tips, hold-to-repeat fix). Superseded by build 10, never tested |
 | 1.0.1 | 10 | 2026-11-06 | TestFlight: build 9 plus tips fixes found by the new CI screen check (solid backdrop, "Shake your iPad"). Awaiting owner test before submit |
+| 1.0.1 | 10 | 2026-11-06 | Owner tested: works. Submit (run 11) failed: no What's New. Screenshots (framed) and listing did upload |

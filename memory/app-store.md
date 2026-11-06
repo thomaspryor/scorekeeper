@@ -45,6 +45,9 @@ rewrite it for each version. Without it the submit fails with the same bare "not
 valid state" (release run 11, 2026-11-06), so the listing lane now refuses early.
 A new version starts with no review attachments even if the notes mention one:
 re-attach with `ios-review-reply.yml` step=attach and check `ios-review.yml`.
+deliver also DELETES review attachments on every listing run ("Removing review
+attachment file"), so re-attach after each submit run; it works while
+WAITING_FOR_REVIEW (done for 1.0.1, 2026-11-06).
 
 ## Signing
 Unsigned archive, then `xcodebuild -exportArchive -allowProvisioningUpdates` with
@@ -95,3 +98,4 @@ These can't be done through Apple's API with an API key:
 | 1.0.1 | 9 | 2026-11-05 | TestFlight (first-run tips, hold-to-repeat fix). Superseded by build 10, never tested |
 | 1.0.1 | 10 | 2026-11-06 | TestFlight: build 9 plus tips fixes found by the new CI screen check (solid backdrop, "Shake your iPad"). Awaiting owner test before submit |
 | 1.0.1 | 10 | 2026-11-06 | Owner tested: works. Submit (run 11) failed: no What's New. Screenshots (framed) and listing did upload |
+| 1.0.1 | 10 | 2026-11-06 | Submitted (run 12) with What's New; WAITING_FOR_REVIEW. Recording re-attached after deliver removed it |

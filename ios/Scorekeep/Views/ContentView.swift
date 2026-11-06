@@ -334,13 +334,18 @@ private struct GestureHintsView: View {
         let detail: String
     }
 
-    private let hints = [
+    private var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+
+    private var hints: [Hint] { [
         Hint(icon: "arrow.right", color: "#0074D9", title: "Swipe right", detail: "Edit a player's name and color"),
         Hint(icon: "arrow.left", color: "#FF4136", title: "Swipe left", detail: "Delete a player"),
         Hint(icon: "arrow.up.arrow.down", color: nil, title: "Hold and drag", detail: "Reorder players"),
-        Hint(icon: "iphone.gen3.radiowaves.left.and.right", color: nil, title: "Shake your phone", detail: "Undo the last change"),
+        Hint(
+            icon: isPad ? "ipad.landscape" : "iphone.gen3.radiowaves.left.and.right", color: nil,
+            title: isPad ? "Shake your iPad" : "Shake your phone", detail: "Undo the last change"
+        ),
         Hint(icon: "plus.forwardslash.minus", color: nil, title: "Hold + or −", detail: "Change the score fast"),
-    ]
+    ] }
 
     var body: some View {
         GeometryReader { geometry in
@@ -388,7 +393,8 @@ private struct GestureHintsView: View {
             }
             .scrollBounceBehavior(.basedOnSize)
         }
-        .background(Color.black.opacity(0.92).ignoresSafeArea())
+        // Solid: any see-through let the "Add Player" row show behind the tips text.
+        .background(Color.black.ignoresSafeArea())
         .contentShape(Rectangle())
         .onTapGesture(perform: onDismiss)
         .accessibilityAddTraits(.isModal)

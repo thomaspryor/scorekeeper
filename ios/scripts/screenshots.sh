@@ -11,6 +11,9 @@ OUT="${1:-$ROOT/ios/fastlane/screenshots/en-US}"
 DERIVED="${DERIVED_DATA_PATH:-${RUNNER_TEMP:-/tmp}/scorekeep-screenshots-derived}"
 BUNDLE_ID="co.scorekeep.app"
 SCENARIOS=(scoreboard celebration history)
+# Screens checked by eye in CI but never uploaded to the App Store.
+CHECK_SCENARIOS=(tips)
+CHECKS="${CHECKS_DIR:-${RUNNER_TEMP:-/tmp}/screen-checks}"
 
 # name pattern | file prefix | accepted App Store sizes (portrait WxH)
 DEVICES=(
@@ -18,7 +21,7 @@ DEVICES=(
   "iPad Pro 13-inch.*|ipad-13|2064x2752 2048x2732"
 )
 
-mkdir -p "$OUT"
+mkdir -p "$OUT" "$CHECKS"
 rm -f "$OUT"/*.png
 
 xcodebuild build \
@@ -67,6 +70,13 @@ for entry in "${DEVICES[@]}"; do
     fi
     echo "Captured $file ($size)"
     n=$((n + 1))
+  done
+  for scenario in "${CHECK_SCENARIOS[@]}"; do
+    xcrun simctl terminate "$udid" "$BUNDLE_ID" 2>/dev/null || true
+    xcrun simctl launch "$udid" "$BUNDLE_ID" -demo "$scenario" >/dev/null
+    sleep 4
+    xcrun simctl io "$udid" screenshot --type=png "$CHECKS/${prefix}-${scenario}.png" >/dev/null
+    echo "Captured check $CHECKS/${prefix}-${scenario}.png"
   done
   xcrun simctl shutdown "$udid" || true
 done

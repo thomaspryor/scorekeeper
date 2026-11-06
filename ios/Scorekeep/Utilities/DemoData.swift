@@ -8,6 +8,8 @@ enum DemoScenario: String {
     case scoreboard
     case celebration
     case history
+    /// The scoreboard with the first-run tips showing (a CI visual check, not a store shot)
+    case tips
 
     /// The scenario passed on the command line, if any.
     static var current: DemoScenario? {
@@ -52,7 +54,7 @@ enum DemoScenario: String {
         store.removePersistentDomain(forName: suite)
         // Screenshots show the scoreboard, not the tips. The empty scenario keeps
         // them so the UI test walks through the real first run.
-        if self != .empty {
+        if self != .empty && self != .tips {
             store.set(true, forKey: GameViewModel.hintsKey)
         }
         if self == .empty {
